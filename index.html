@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lua Editor</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/logos/lua-icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/logos/lua-icon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/logos/lua-icon-180x180.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ext-language_tools.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
@@ -505,35 +508,35 @@
                 const line = session.getLine(pos.row);
                 const beforeCursor = line.slice(0, pos.column);
                 
-                // Parse current code state
+                
                 luaParser.parseCode(session.getValue());
                 
                 let completions = [];
                 
-                // Check if we're after a dot or colon (method completion)
+                
                 const methodMatch = beforeCursor.match(/(\w+)[.:]\w*$/);
                 if (methodMatch) {
                     const objectName = methodMatch[1];
                     const varInfo = luaParser.variables.get(objectName);
                     
                     if (varInfo && varInfo.type === 'RobloxService') {
-                        // Get service-specific methods
+                        
                         completions = luaParser.getServiceMethods(objectName);
                     } else {
-                        // Get regular method completions
+                        
                         completions = this.getMethodCompletions(objectName);
                     }
                 } else {
-                    // Get contextual completions (variables)
+                    
                     const contextualCompletions = luaParser.getContextualCompletions(prefix, pos.row, pos.column);
                     
-                    // Get standard completions
+                    
                     const standardCompletions = this.getStandardCompletions();
                     
-                    // Combine completions, prioritizing contextual ones
+                     
                     completions = [...contextualCompletions, ...standardCompletions];
                     
-                    // Filter completions based on prefix if it exists
+                    
                     if (prefix) {
                         completions = completions.filter(completion => 
                             completion.caption ? 
@@ -542,7 +545,7 @@
                         );
                     }
                     
-                    // Sort completions by score and then alphabetically
+                    
                     completions.sort((a, b) => {
                         if (a.score !== b.score) {
                             return b.score - a.score;
@@ -555,19 +558,19 @@
             },
             
             getMethodCompletions: function(objectName) {
-                // Add object-specific method completions
+                
                 const methodCompletions = {
                     string: [
                         { value: 'len()', score: 1000, meta: 'method', docText: 'Returns the length of the string' },
                         { value: 'sub(start, end)', score: 1000, meta: 'method', docText: 'Returns substring from start to end' },
-                        // Add more string methods...
+                        
                     ],
                     table: [
                         { value: 'insert(value)', score: 1000, meta: 'method', docText: 'Inserts value at the end of the table' },
                         { value: 'remove([pos])', score: 1000, meta: 'method', docText: 'Removes and returns element at position pos' },
-                        // Add more table methods...
+                        
                     ],
-                    // Add more object types...
+                    
                 };
                 
                 const varInfo = luaParser.variables.get(objectName);

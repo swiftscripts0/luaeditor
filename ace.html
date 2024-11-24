@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ext-language_tools.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1e1e1e;
+            font-family: 'Fira Code', monospace;
+        }
+
+        #editor {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            font-feature-settings: "liga" 1, "calt" 1;
+        }
+
+        .ace_cursor {
+            animation: blink 1.2s cubic-bezier(0.78, 0.14, 0.15, 0.86) infinite !important;
+        }
+
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .ace_selection {
+            animation: selectionFade 0.3s ease-out;
+        }
+
+        @keyframes selectionFade {
+            from {
+                background-color: #ffffff50;
+            }
+
+            to {
+                background-color: #49483E;
+            }
+        }
+
+        .ace_active-line {
+            animation: activeLine 0.3s ease-out;
+        }
+
+        @keyframes activeLine {
+            from {
+                background-color: transparent;
+            }
+
+            to {
+                background-color: #3c3c3c;
+            }
+        }
+
+        .ace_bracket {
+            animation: bracketMatch 0.5s ease infinite alternate;
+        }
+
+        @keyframes bracketMatch {
+            from {
+                border-color: #f8f8f2;
+            }
+
+            to {
+                border-color: #66d9ef;
+            }
+        }
+
+        .ace_autocomplete {
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .ace_text-input {
+            transition: all 0.3s ease-out !important;
+        }
+
+        .ace_scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .ace_scrollbar::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+
+        .ace_scrollbar::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .ace_scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
+        .ace_gutter-cell {
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .ace_selection {
+            background: #ffffff15 !important;
+        }
+
+        .ace_active-line {
+            transition: background-color 0.2s ease-out;
+            background: #2a2a2a !important;
+        }
+
+        .ace_editor {
+            display: flex;
+            flex-direction: row;
+            opacity: 0;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #minimap {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 120px;
+            background: #1e1e1e;
+            overflow: hidden;
+            z-index: 10;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            border-left: 1px solid #333;
+            cursor: pointer;
+            opacity: 0.4;
+        }
+
+        #minimap:hover {
+            opacity: 1;
+        }
+
+        #minimap-content {
+            transform-origin: top left;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+            white-space: pre;
+        }
+
+        #minimap-slider {
+            position: absolute;
+            right: 0;
+            width: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            border-radius: 3px;
+        }
+
+        .ace_editor * {
+            transition: none;
+        }
+
+        .ace_line {
+            transition: none;
+        }
+
+        .ace_text-input {
+            transition: none !important;
+        }
+
+        .ace_gutter-cell {
+            transition: background-color 0.2s ease-out;
+        }
+
+        .ace_marker-layer .ace_selection {
+            transition: background-color 0.2s ease-out;
+        }
+
+        .ace_marker-layer .ace_active-line {
+            transition: background-color 0.2s ease-out;
+        }
+
+        .ace_cursor {
+            transition: border-color 0.2s ease-out;
+        }
+
+        .ace_hidden-cursors .ace_cursor {
+            transition: opacity 0.2s ease-out;
+        }
+
+        .ace_smooth_scroll {
+            transition: transform 0.2s ease-out;
+        }
+
+        .ace_scrollbar {
+            transition: opacity 0.2s ease-out;
+        }
+
+        #minimap, #minimap-content, #minimap-slider {
+            transition: all 0.2s ease-out;
+        }
+
+        .ace_gutter-cell {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .ace_fold {
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .ace_marker-layer .ace_bracket {
+            transition: border-color 0.3s ease;
+        }
+
+        .ace_marker-layer .ace_active-line {
+            transition: background-color 0.3s ease;
+        }
+
+        .ace_gutter-active-line {
+            transition: background-color 0.3s ease;
+        }
+
+        .ace_cursor {
+            transition: border-color 0.3s ease;
+        }
+
+        .ace_hidden-cursors .ace_cursor {
+            transition: opacity 0.3s ease;
+        }
+
+        .ace_smooth_scroll {
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .ace_scrollbar {
+            transition: opacity 0.3s ease;
+        }
+
+        .ace_autocomplete {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .ace_tooltip {
+            transition: opacity 0.3s ease;
+        }
+
+        .ace_fold-widget {
+            transition: transform 0.3s ease;
+        }
+
+        #minimap, #minimap-content, #minimap-slider {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Add neon text effect */
+        .ace_editor {
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Different colors for different syntax elements */
+        .ace_keyword {
+            color: #ff79c6 !important;
+            text-shadow: 0 0 2px rgba(255, 121, 198, 0.4),
+                         0 0 4px rgba(255, 121, 198, 0.2);
+        }
+
+        .ace_string {
+            color: #f1fa8c !important;
+            text-shadow: 0 0 2px rgba(241, 250, 140, 0.4),
+                         0 0 4px rgba(241, 250, 140, 0.2);
+        }
+
+        .ace_numeric {
+            color: #bd93f9 !important;
+            text-shadow: 0 0 2px rgba(189, 147, 249, 0.4),
+                         0 0 4px rgba(189, 147, 249, 0.2);
+        }
+
+        .ace_function {
+            color: #50fa7b !important;
+            text-shadow: 0 0 2px rgba(80, 250, 123, 0.4),
+                         0 0 4px rgba(80, 250, 123, 0.2);
+        }
+
+        .ace_operator {
+            color: #ff79c6 !important;
+            text-shadow: 0 0 2px rgba(255, 121, 198, 0.4),
+                         0 0 4px rgba(255, 121, 198, 0.2);
+        }
+
+        .ace_comment {
+            color: #6272a4 !important;
+            text-shadow: 0 0 2px rgba(98, 114, 164, 0.4),
+                         0 0 4px rgba(98, 114, 164, 0.2);
+        }
+
+        .ace_constant {
+            color: #bd93f9 !important;
+            text-shadow: 0 0 2px rgba(189, 147, 249, 0.4),
+                         0 0 4px rgba(189, 147, 249, 0.2);
+        }
+
+        .ace_support.ace_function {
+            color: #8be9fd !important;
+            text-shadow: 0 0 2px rgba(139, 233, 253, 0.4),
+                         0 0 4px rgba(139, 233, 253, 0.2);
+        }
+
+        .ace_variable {
+            color: #f8f8f2 !important;
+            text-shadow: 0 0 2px rgba(248, 248, 242, 0.4),
+                         0 0 4px rgba(248, 248, 242, 0.2);
+        }
+
+        /* Add a subtle pulse animation to the cursor */
+        .ace_cursor {
+            border-left: 2px solid #f8f8f2 !important;
+            animation: neonCursor 1.2s ease-in-out infinite !important;
+        }
+
+        @keyframes neonCursor {
+            0%, 100% {
+                border-color: #f8f8f2;
+                box-shadow: 0 0 4px rgba(248, 248, 242, 0.4);
+            }
+            50% {
+                border-color: rgba(248, 248, 242, 0.5);
+                box-shadow: 0 0 8px rgba(248, 248, 242, 0.6);
+            }
+        }
+
+        /* Selection highlight with neon effect */
+        .ace_selection {
+            background: rgba(189, 147, 249, 0.3) !important;
+            box-shadow: 0 0 10px rgba(189, 147, 249, 0.2);
+        }
+
+        /* Active line highlight with subtle neon glow */
+        .ace_active-line {
+            background: rgba(44, 45, 56, 0.8) !important;
+            box-shadow: inset 0 0 6px rgba(189, 147, 249, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="editor">print("Hello, World!")</div>
+    <div id="minimap">
+        <div id="minimap-content"></div>
+        <div id="minimap-slider"></div>
+    </div>
+    <script>
+        let editor = ace.edit("editor");
+        editor.setTheme("ace/theme/tomorrow_night");
+        editor.session.setMode("ace/mode/lua");
+        editor.setFontSize(14);
+        editor.setShowPrintMargin(false);
+
+        ace.require("ace/ext/language_tools");
+
+        editor.setOptions({
+            enableLiveAutocompletion: true,
+            enableSnippets: true,
+            enableBasicAutocompletion: true,
+            autoScrollEditorIntoView: true,
+            highlightActiveLine: true,
+            highlightSelectedWord: true,
+            animatedScroll: true,
+            scrollPastEnd: 0.5,
+            behavioursEnabled: true,
+            wrapBehavioursEnabled: true,
+            fadeFoldWidgets: true,
+            displayIndentGuides: true,
+            showGutter: true,
+            showLineNumbers: true,
+            printMarginColumn: 100,
+            tabSize: 4,
+            useSoftTabs: true,
+            navigateWithinSoftTabs: true,
+            copyWithEmptySelection: true,
+            cursorStyle: 'smooth',
+            mergeUndoDeltas: 'always',
+            fontSize: "14px",
+            fontFamily: "'Fira Code', monospace",
+            enableLigatures: true
+        });
+
+        let luaCompleter = {
+            getCompletions: function (editor, session, pos, prefix, callback) {
+                let completions = [
+                    { value: 'and', score: 1000, meta: 'keyword' },
+                    { value: 'break', score: 1000, meta: 'keyword' },
+                    { value: 'do', score: 1000, meta: 'keyword' },
+                    { value: 'else', score: 1000, meta: 'keyword' },
+                    { value: 'elseif', score: 1000, meta: 'keyword' },
+                    { value: 'end', score: 1000, meta: 'keyword' },
+                    { value: 'false', score: 1000, meta: 'keyword' },
+                    { value: 'for', score: 1000, meta: 'keyword' },
+                    { value: 'function', score: 1000, meta: 'keyword' },
+                    { value: 'if', score: 1000, meta: 'keyword' },
+                    { value: 'in', score: 1000, meta: 'keyword' },
+                    { value: 'local', score: 1000, meta: 'keyword' },
+                    { value: 'nil', score: 1000, meta: 'keyword' },
+                    { value: 'not', score: 1000, meta: 'keyword' },
+                    { value: 'or', score: 1000, meta: 'keyword' },
+                    { value: 'repeat', score: 1000, meta: 'keyword' },
+                    { value: 'return', score: 1000, meta: 'keyword' },
+                    { value: 'then', score: 1000, meta: 'keyword' },
+                    { value: 'true', score: 1000, meta: 'keyword' },
+                    { value: 'until', score: 1000, meta: 'keyword' },
+                    { value: 'while', score: 1000, meta: 'keyword' },
+                    { value: 'assert()', score: 900, meta: 'function' },
+                    { value: 'collectgarbage()', score: 900, meta: 'function' },
+                    { value: 'error()', score: 900, meta: 'function' },
+                    { value: 'getmetatable()', score: 900, meta: 'function' },
+                    { value: 'ipairs()', score: 900, meta: 'function' },
+                    { value: 'next()', score: 900, meta: 'function' },
+                    { value: 'pairs()', score: 900, meta: 'function' },
+                    { value: 'pcall()', score: 900, meta: 'function' },
+                    { value: 'print()', score: 900, meta: 'function' },
+                    { value: 'rawequal()', score: 900, meta: 'function' },
+                    { value: 'rawget()', score: 900, meta: 'function' },
+                    { value: 'rawset()', score: 900, meta: 'function' },
+                    { value: 'select()', score: 900, meta: 'function' },
+                    { value: 'setmetatable()', score: 900, meta: 'function' },
+                    { value: 'tonumber()', score: 900, meta: 'function' },
+                    { value: 'tostring()', score: 900, meta: 'function' },
+                    { value: 'type()', score: 900, meta: 'function' },
+                    { value: 'xpcall()', score: 900, meta: 'function' },
+                    { value: 'string.byte()', score: 800, meta: 'string' },
+                    { value: 'string.char()', score: 800, meta: 'string' },
+                    { value: 'string.dump()', score: 800, meta: 'string' },
+                    { value: 'string.find()', score: 800, meta: 'string' },
+                    { value: 'string.format()', score: 800, meta: 'string' },
+                    { value: 'string.gmatch()', score: 800, meta: 'string' },
+                    { value: 'string.gsub()', score: 800, meta: 'string' },
+                    { value: 'string.len()', score: 800, meta: 'string' },
+                    { value: 'string.lower()', score: 800, meta: 'string' },
+                    { value: 'string.match()', score: 800, meta: 'string' },
+                    { value: 'string.rep()', score: 800, meta: 'string' },
+                    { value: 'string.reverse()', score: 800, meta: 'string' },
+                    { value: 'string.sub()', score: 800, meta: 'string' },
+                    { value: 'string.upper()', score: 800, meta: 'string' },
+                    { value: 'table.concat()', score: 800, meta: 'table' },
+                    { value: 'table.insert()', score: 800, meta: 'table' },
+                    { value: 'table.remove()', score: 800, meta: 'table' },
+                    { value: 'table.sort()', score: 800, meta: 'table' },
+                    { value: 'table.unpack()', score: 800, meta: 'table' },
+                    { value: 'math.abs()', score: 800, meta: 'math' },
+                    { value: 'math.acos()', score: 800, meta: 'math' },
+                    { value: 'math.asin()', score: 800, meta: 'math' },
+                    { value: 'math.atan()', score: 800, meta: 'math' },
+                    { value: 'math.ceil()', score: 800, meta: 'math' },
+                    { value: 'math.cos()', score: 800, meta: 'math' },
+                    { value: 'math.deg()', score: 800, meta: 'math' },
+                    { value: 'math.exp()', score: 800, meta: 'math' },
+                    { value: 'math.floor()', score: 800, meta: 'math' },
+                    { value: 'math.log()', score: 800, meta: 'math' },
+                    { value: 'math.max()', score: 800, meta: 'math' },
+                    { value: 'math.min()', score: 800, meta: 'math' },
+                    { value: 'math.pi', score: 800, meta: 'math' },
+                    { value: 'math.rad()', score: 800, meta: 'math' },
+                    { value: 'math.random()', score: 800, meta: 'math' },
+                    { value: 'math.sin()', score: 800, meta: 'math' },
+                    { value: 'math.sqrt()', score: 800, meta: 'math' },
+                    { value: 'math.tan()', score: 800, meta: 'math' },
+                    { value: 'game:GetService("Players")', score: 1000, meta: 'service' },
+                    { value: 'game:GetService("Workspace")', score: 1000, meta: 'service' },
+                    { value: 'game:GetService("ReplicatedStorage")', score: 1000, meta: 'service' },
+                    { value: 'game:GetService("RunService")', score: 1000, meta: 'service' },
+                    { value: 'game:GetService("TweenService")', score: 1000, meta: 'service' },
+                    { value: 'game:GetService("UserInputService")', score: 1000, meta: 'service' },
+                    { value: 'game:GetService("HttpService")', score: 1000, meta: 'service' },
+                    { value: 'game:GetService("Debris")', score: 1000, meta: 'service' },
+                    { value: 'game:GetService("MarketplaceService")', score: 1000, meta: 'service' },
+                    { value: 'Parent', score: 900, meta: 'property' },
+                    { value: 'Name', score: 900, meta: 'property' },
+                    { value: 'Position', score: 900, meta: 'property' },
+                    { value: 'Size', score: 900, meta: 'property' },
+                    { value: 'CFrame', score: 900, meta: 'property' },
+                    { value: 'Transparency', score: 900, meta: 'property' },
+                    { value: 'Anchored', score: 900, meta: 'property' },
+                    { value: 'CanCollide', score: 900, meta: 'property' },
+                    { value: ':Clone()', score: 900, meta: 'method' },
+                    { value: ':Destroy()', score: 900, meta: 'method' },
+                    { value: ':FindFirstChild()', score: 900, meta: 'method' },
+                    { value: ':WaitForChild()', score: 900, meta: 'method' },
+                    { value: ':GetChildren()', score: 900, meta: 'method' },
+                    { value: ':GetDescendants()', score: 900, meta: 'method' },
+                    { value: 'Vector3.new()', score: 800, meta: 'constructor' },
+                    { value: 'CFrame.new()', score: 800, meta: 'constructor' },
+                    { value: 'Color3.fromRGB()', score: 800, meta: 'constructor' },
+                    { value: 'UDim2.new()', score: 800, meta: 'constructor' },
+                    { value: 'Instance.new()', score: 800, meta: 'constructor' },
+                    { value: '.Changed', score: 800, meta: 'event' },
+                    { value: '.Touched', score: 800, meta: 'event' },
+                    { value: '.TouchEnded', score: 800, meta: 'event' },
+                    { value: '.Activated', score: 800, meta: 'event' },
+                    {
+                        caption: 'function',
+                        value: 'function ${1:name}(${2:params})\n    ${3:-- body}\nend',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'if',
+                        value: 'if ${1:condition} then\n    ${2:-- body}\nend',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'for',
+                        value: 'for ${1:i}=${2:1},${3:10} do\n    ${4:-- body}\nend',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'for pairs',
+                        value: 'for ${1:k},${2:v} in pairs(${3:table}) do\n    ${4:-- body}\nend',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'local script',
+                        value: 'local script = script\nlocal player = game.Players.LocalPlayer\nlocal character = player.Character or player.CharacterAdded:Wait()\n\n',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'connect function',
+                        value: ':Connect(function(${1:params})\n    ${2:-- body}\nend)',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'remote event',
+                        value: 'local ${1:RemoteEvent} = game:GetService("ReplicatedStorage"):WaitForChild("${2:EventName}")',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'tween',
+                        value: 'local tween = game:GetService("TweenService"):Create(${1:instance}, TweenInfo.new(${2:duration}), {${3:properties}})\ntween:Play()',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    { value: 'getgenv()', score: 1000, meta: 'exploit' },
+                    { value: 'getrenv()', score: 1000, meta: 'exploit' },
+                    { value: 'getfenv()', score: 1000, meta: 'exploit' },
+                    { value: 'setfenv()', score: 1000, meta: 'exploit' },
+                    { value: 'getrawmetatable()', score: 1000, meta: 'exploit' },
+                    { value: 'setrawmetatable()', score: 1000, meta: 'exploit' },
+                    { value: 'loadstring()', score: 1000, meta: 'exploit' },
+                    { value: 'hookfunction()', score: 1000, meta: 'exploit' },
+                    { value: 'hookmetamethod()', score: 1000, meta: 'exploit' },
+                    { value: 'newcclosure()', score: 1000, meta: 'exploit' },
+                    { value: 'checkcaller()', score: 1000, meta: 'exploit' },
+                    { value: 'islclosure()', score: 1000, meta: 'exploit' },
+                    { value: 'iscclosure()', score: 1000, meta: 'exploit' },
+                    { value: 'isxclosure()', score: 1000, meta: 'exploit' },
+                    { value: 'getthreadidentity()', score: 1000, meta: 'exploit' },
+                    { value: 'setthreadidentity()', score: 1000, meta: 'exploit' },
+                    { value: 'getthreadcontext()', score: 1000, meta: 'exploit' },
+                    { value: 'setthreadcontext()', score: 1000, meta: 'exploit' },
+                    { value: 'getnamecallmethod()', score: 1000, meta: 'exploit' },
+                    { value: 'setnamecallmethod()', score: 1000, meta: 'exploit' },
+                    { value: 'getcallingscript()', score: 1000, meta: 'exploit' },
+                    { value: 'getsenv()', score: 1000, meta: 'exploit' },
+                    { value: 'getmenv()', score: 1000, meta: 'exploit' },
+                    { value: 'getreg()', score: 1000, meta: 'exploit' },
+                    { value: 'getgc()', score: 1000, meta: 'exploit' },
+                    { value: 'getinstances()', score: 1000, meta: 'exploit' },
+                    { value: 'getnilinstances()', score: 1000, meta: 'exploit' },
+                    { value: 'getscripts()', score: 1000, meta: 'exploit' },
+                    { value: 'getloadedmodules()', score: 1000, meta: 'exploit' },
+                    { value: 'fireclickdetector()', score: 1000, meta: 'exploit' },
+                    { value: 'firetouchinterest()', score: 1000, meta: 'exploit' },
+                    { value: 'fireproximityprompt()', score: 1000, meta: 'exploit' },
+                    { value: 'isnetworkowner()', score: 1000, meta: 'exploit' },
+                    { value: 'sethiddenproperty()', score: 1000, meta: 'exploit' },
+                    { value: 'gethiddenproperty()', score: 1000, meta: 'exploit' },
+                    { value: 'setsimulationradius()', score: 1000, meta: 'exploit' },
+                    { value: 'request()', score: 1000, meta: 'exploit' },
+                    { value: 'http_request()', score: 1000, meta: 'exploit' },
+                    { value: 'syn.request()', score: 1000, meta: 'exploit' },
+                    {
+                        caption: 'hook function',
+                        value: 'local old${1:Function} = hookfunction(${2:target}, function(...)\n    local args = {...}\n    ${3:-- modifications}\n    return old${1:Function}(...)\nend)',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'hook metamethod',
+                        value: 'local old${1:Method} = hookmetamethod(game, "${2:__namecall}", function(self, ...)\n    local args = {...}\n    if getnamecallmethod() == "${3:MethodName}" then\n        ${4:-- modifications}\n    end\n    return old${1:Method}(self, ...)\nend)',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    },
+                    {
+                        caption: 'protect gui',
+                        value: 'local gui = ${1:Instance}\nif syn then\n    syn.protect_gui(gui)\n    gui.Parent = game.CoreGui\nelse\n    gui.Parent = gethui()\nend',
+                        meta: 'snippet',
+                        type: 'snippet'
+                    }
+                ];
+
+                callback(null, completions);
+            }
+        };
+
+        editor.completers = [luaCompleter];
+
+        function getCode() {
+            return editor.getValue();
+        }
+
+        function setCode(code) {
+            editor.setValue(code, -1);
+        }
+
+        editor.session.on('changeScrollTop', function (scrollTop) {
+            requestAnimationFrame(() => {
+                editor.renderer.scrollBar.element.style.transform =
+                    `translateY(${scrollTop}px)`;
+            });
+        });
+
+        editor.container.style.transition = 'box-shadow 0.3s ease';
+        editor.on('focus', () => {
+            editor.container.style.boxShadow = 'inset 0 0 0 2px #666';
+        });
+        editor.on('blur', () => {
+            editor.container.style.boxShadow = 'none';
+        });
+
+        editor.renderer.setScrollMargin(10, 10, 0, 0);
+        editor.renderer.setAnimatedScroll(true);
+
+        let minimapEditor = ace.edit("minimap-content");
+        minimapEditor.setTheme("ace/theme/tomorrow_night");
+        minimapEditor.session.setMode("ace/mode/lua");
+        minimapEditor.setReadOnly(true);
+        minimapEditor.renderer.setShowGutter(false);
+        minimapEditor.renderer.setShowPrintMargin(false);
+        minimapEditor.renderer.hideCursor();
+        minimapEditor.setHighlightActiveLine(false);
+        minimapEditor.setShowPrintMargin(false);
+        minimapEditor.setOptions({
+            fontSize: "4px",
+            fontFamily: "'Fira Code', monospace",
+            highlightActiveLine: false,
+            highlightGutterLine: false,
+            showLineNumbers: false,
+            showFoldWidgets: false,
+            displayIndentGuides: false,
+            showPrintMargin: false,
+            maxLines: Infinity,
+            wrap: false
+        });
+
+        editor.session.on('change', function() {
+            minimapEditor.setValue(editor.getValue(), -1);
+            updateMinimapScale();
+        });
+
+        minimapEditor.setValue(editor.getValue(), -1);
+        updateMinimapScale();
+
+        document.getElementById('minimap').addEventListener('click', function (e) {
+            const totalHeight = editor.session.getLength() * editor.renderer.lineHeight;
+            const clickRatio = e.offsetY / this.offsetHeight;
+            const scrollTop = totalHeight * clickRatio - (editor.container.clientHeight / 2);
+            editor.session.setScrollTop(scrollTop);
+        });
+
+        window.addEventListener('resize', updateMinimapScale);
+
+        editor.container.style.right = '120px';
+
+        function updateMinimapScale() {
+            const editorHeight = editor.container.clientHeight;
+            const totalLines = editor.session.getLength();
+            const lineHeight = editor.renderer.lineHeight;
+            const totalHeight = totalLines * lineHeight;
+            const scale = Math.min(editorHeight / totalHeight, 1.2);
+            
+            const minimapContent = document.getElementById('minimap-content');
+            minimapContent.style.transform = `scale(${scale})`;
+            minimapContent.style.width = (120 / scale) + 'px';
+
+            const sliderHeight = Math.max((editorHeight / totalHeight) * editorHeight, 30);
+            const sliderTop = (editor.session.getScrollTop() / (totalHeight - editorHeight)) * (editorHeight - sliderHeight);
+            const slider = document.getElementById('minimap-slider');
+            slider.style.height = sliderHeight + 'px';
+            slider.style.top = sliderTop + 'px';
+        }
+
+        editor.commands.addCommand({
+            name: 'find',
+            bindKey: {win: 'Ctrl-F', mac: 'Command-F'},
+            exec: function(editor) {
+                ace.require("ace/ext/searchbox").Search(editor);
+            }
+        });
+
+        editor.commands.addCommand({
+            name: 'replace',
+            bindKey: {win: 'Ctrl-H', mac: 'Command-Option-F'},
+            exec: function(editor) {
+                ace.require("ace/ext/searchbox").Search(editor, true);
+            }
+        });
+
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            
+            if (e.dataTransfer.files.length) {
+                const file = e.dataTransfer.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    editor.setValue(e.target.result, -1);
+                };
+                
+                reader.readAsText(file);
+            }
+        });
+    </script>
+</body>
+
+</html>

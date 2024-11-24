@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lua Editor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.6/ext-language_tools.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1e1e1e;
+            font-family: 'Fira Code', monospace;
+        }
+
+        #editor {
+            position: absolute;
+            top: 0;
+            right: 120px;
+            bottom: 0;
+            left: 0;
+            width: calc(100% - 120px);
+            height: 100vh;
+            font-feature-settings: "liga" 1, "calt" 1;
+        }
+
+        .ace_cursor {
+            animation: blink 1.2s cubic-bezier(0.78, 0.14, 0.15, 0.86) infinite !important;
+        }
+
+        @keyframes blink {
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .ace_selection {
+            animation: selectionFade 0.3s ease-out;
+        }
+
+        @keyframes selectionFade {
+            from {
+                background-color: #ffffff50;
+            }
+
+            to {
+                background-color: #49483E;
+            }
+        }
+
+        .ace_active-line {
+            animation: activeLine 0.3s ease-out;
+        }
+
+        @keyframes activeLine {
+            from {
+                background-color: transparent;
+            }
+
+            to {
+                background-color: #3c3c3c;
+            }
+        }
+
+        .ace_bracket {
+            animation: bracketMatch 0.5s ease infinite alternate;
+        }
+
+        @keyframes bracketMatch {
+            from {
+                border-color: #f8f8f2;
+            }
+
+            to {
+                border-color: #66d9ef;
+            }
+        }
+
+        .ace_autocomplete {
+            animation: slideDown 0.2s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .ace_text-input {
+            transition: all 0.3s ease-out !important;
+        }
+
+        .ace_scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .ace_scrollbar::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 4px;
+        }
+
+        .ace_scrollbar::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .ace_scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #666;
+        }
+
+        .ace_gutter-cell {
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .ace_selection {
+            background: #ffffff15 !important;
+        }
+
+        .ace_active-line {
+            transition: background-color 0.2s ease-out;
+            background: #2a2a2a !important;
+        }
+
+        .ace_editor {
+            display: flex;
+            flex-direction: row;
+            opacity: 0;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #minimap {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 120px;
+            background: #1e1e1e;
+            overflow: hidden;
+            z-index: 10;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            border-left: 1px solid #333;
+            cursor: pointer;
+            opacity: 0.4;
+        }
+
+        #minimap:hover {
+            opacity: 1;
+        }
+
+        #minimap-content {
+            transform-origin: top left;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+            white-space: pre;
+        }
+
+        #minimap-slider {
+            position: absolute;
+            right: 0;
+            width: 120px;
+            background: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            border-radius: 3px;
+        }
+
+        .ace_editor * {
+            transition: none;
+        }
+
+        .ace_line {
+            transition: none;
+        }
+
+        .ace_text-input {
+            transition: none !important;
+        }
+
+        .ace_gutter-cell {
+            transition: background-color 0.2s ease-out;
+        }
+
+        .ace_marker-layer .ace_selection {
+            transition: background-color 0.2s ease-out;
+        }
+
+        .ace_marker-layer .ace_active-line {
+            transition: background-color 0.2s ease-out;
+        }
+
+        .ace_cursor {
+            transition: border-color 0.2s ease-out;
+        }
+
+        .ace_hidden-cursors .ace_cursor {
+            transition: opacity 0.2s ease-out;
+        }
+
+        .ace_smooth_scroll {
+            transition: transform 0.2s ease-out;
+        }
+
+        .ace_scrollbar {
+            transition: opacity 0.2s ease-out;
+        }
+
+        #minimap, #minimap-content, #minimap-slider {
+            transition: all 0.2s ease-out;
+        }
+
+        .ace_gutter-cell {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .ace_fold {
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .ace_marker-layer .ace_bracket {
+            transition: border-color 0.3s ease;
+        }
+
+        .ace_marker-layer .ace_active-line {
+            transition: background-color 0.3s ease;
+        }
+
+        .ace_gutter-active-line {
+            transition: background-color 0.3s ease;
+        }
+
+        .ace_cursor {
+            transition: border-color 0.3s ease;
+        }
+
+        .ace_hidden-cursors .ace_cursor {
+            transition: opacity 0.3s ease;
+        }
+
+        .ace_smooth_scroll {
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .ace_scrollbar {
+            transition: opacity 0.3s ease;
+        }
+
+        .ace_autocomplete {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .ace_tooltip {
+            transition: opacity 0.3s ease;
+        }
+
+        .ace_fold-widget {
+            transition: transform 0.3s ease;
+        }
+
+        #minimap, #minimap-content, #minimap-slider {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Add neon text effect */
+        .ace_editor {
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Different colors for different syntax elements */
+        .ace_keyword {
+            color: #ff79c6 !important;
+            text-shadow: 0 0 2px rgba(255, 121, 198, 0.4),
+                         0 0 4px rgba(255, 121, 198, 0.2);
+        }
+
+        .ace_string {
+            color: #f1fa8c !important;
+            text-shadow: 0 0 2px rgba(241, 250, 140, 0.4),
+                         0 0 4px rgba(241, 250, 140, 0.2);
+        }
+
+        .ace_numeric {
+            color: #bd93f9 !important;
+            text-shadow: 0 0 2px rgba(189, 147, 249, 0.4),
+                         0 0 4px rgba(189, 147, 249, 0.2);
+        }
+
+        .ace_function {
+            color: #50fa7b !important;
+            text-shadow: 0 0 2px rgba(80, 250, 123, 0.4),
+                         0 0 4px rgba(80, 250, 123, 0.2);
+        }
+
+        .ace_operator {
+            color: #ff79c6 !important;
+            text-shadow: 0 0 2px rgba(255, 121, 198, 0.4),
+                         0 0 4px rgba(255, 121, 198, 0.2);
+        }
+
+        .ace_comment {
+            color: #6272a4 !important;
+            text-shadow: 0 0 2px rgba(98, 114, 164, 0.4),
+                         0 0 4px rgba(98, 114, 164, 0.2);
+        }
+
+        .ace_constant {
+            color: #bd93f9 !important;
+            text-shadow: 0 0 2px rgba(189, 147, 249, 0.4),
+                         0 0 4px rgba(189, 147, 249, 0.2);
+        }
+
+        .ace_support.ace_function {
+            color: #8be9fd !important;
+            text-shadow: 0 0 2px rgba(139, 233, 253, 0.4),
+                         0 0 4px rgba(139, 233, 253, 0.2);
+        }
+
+        .ace_variable {
+            color: #f8f8f2 !important;
+            text-shadow: 0 0 2px rgba(248, 248, 242, 0.4),
+                         0 0 4px rgba(248, 248, 242, 0.2);
+        }
+
+        /* Add a subtle pulse animation to the cursor */
+        .ace_cursor {
+            border-left: 2px solid #f8f8f2 !important;
+            animation: neonCursor 1.2s ease-in-out infinite !important;
+        }
+
+        @keyframes neonCursor {
+            0%, 100% {
+                border-color: #f8f8f2;
+                box-shadow: 0 0 4px rgba(248, 248, 242, 0.4);
+            }
+            50% {
+                border-color: rgba(248, 248, 242, 0.5);
+                box-shadow: 0 0 8px rgba(248, 248, 242, 0.6);
+            }
+        }
+
+        /* Selection highlight with neon effect */
+        .ace_selection {
+            background: rgba(189, 147, 249, 0.3) !important;
+            box-shadow: 0 0 10px rgba(189, 147, 249, 0.2);
+        }
+
+        /* Active line highlight with subtle neon glow */
+        .ace_active-line {
+            background: rgba(44, 45, 56, 0.8) !important;
+            box-shadow: inset 0 0 6px rgba(189, 147, 249, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="editor">print("Hello, World!")</div>
+    <div id="minimap">
+        <div id="minimap-content"></div>
+        <div id="minimap-slider"></div>
+    </div>
+    <script>
+        let editor = ace.edit("editor");
+        editor.setTheme("ace/theme/tomorrow_night");
+        editor.session.setMode("ace/mode/lua");
+        editor.setFontSize(14);
+        editor.setShowPrintMargin(false);
+
+        ace.require("ace/ext/language_tools");
+
+        editor.setOptions({
+            enableLiveAutocompletion: {
+                enabled: true,
+                triggerAfterInsert: true,
+                triggerOnBackspace: true,
+                triggerOnDelete: false,
+                characterThreshold: 1,
+                delay: 50
+            },
+            enableSnippets: true,
+            enableBasicAutocompletion: true,
+            enableMultiselect: true,
+            showInvisibles: false,
+            wrap: true,
+            autoScrollEditorIntoView: false,
+            tooltipFollowsMouse: true,
+            enableAutoIndent: true,
+            behavioursEnabled: true,
+            wrapBehavioursEnabled: true,
+            maxTokens: 100000,
+            tabSize: 4,
+            useSoftTabs: true,
+            navigateWithinSoftTabs: true,
+            scrollPastEnd: 0.5,
+            animatedScroll: true,
+            displayIndentGuides: true,
+            showGutter: true,
+            printMarginColumn: 120,
+            highlightSelectedWord: true,
+            fixedWidthGutter: true,
+            showLineNumbers: true,
+            showFoldWidgets: true,
+            fadeFoldWidgets: true,
+            maxLines: null,
+            minLines: null,
+            scrollSpeed: 2,
+            dragEnabled: true,
+            highlightActiveLine: true,
+            hScrollBarAlwaysVisible: false,
+            vScrollBarAlwaysVisible: false,
+            height: '100%'
+        });
+
+        editor.commands.on('afterExec', function(e) {
+            if (e.command.name === 'insertstring' && /^[\w.:]$/.test(e.args)) {
+                clearTimeout(this.completionTimer);
+                this.completionTimer = setTimeout(() => {
+                    editor.execCommand('startAutocomplete');
+                }, 50);
+            }
+        });
+
+        editor.commands.addCommand({
+            name: 'showAutocompletion',
+            bindKey: {win: 'Ctrl-Space', mac: 'Command-Space'},
+            exec: function(editor) {
+                editor.execCommand('startAutocomplete');
+            }
+        });
+
+        const style = document.createElement('style');
+        style.textContent = `
+            .ace_autocomplete {
+                width: 280px !important;
+                background: #282a36 !important;
+                border: 1px solid #44475a !important;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.5) !important;
+                border-radius: 6px !important;
+                padding: 0 !important;
+            }
+
+            .ace_autocomplete .ace_completion-highlight {
+                color: #ff79c6 !important;
+                text-shadow: 0 0 2px rgba(255,121,198,0.4) !important;
+            }
+
+            .ace_autocomplete .ace_line-hover {
+                background: #44475a !important;
+                border: none !important;
+            }
+
+            .ace_autocomplete .ace_line {
+                padding: 4px 8px !important;
+            }
+
+            .ace_autocomplete .ace_completion-meta {
+                color: #6272a4 !important;
+                font-style: italic !important;
+                padding-left: 8px !important;
+            }
+        `;
+        document.head.appendChild(style);
+
+        editor.setOptions({
+            enableLiveAutocompletion: {
+                enabled: true,
+                triggerAfterInsert: true,
+                triggerOnBackspace: true,
+                triggerOnDelete: false,
+                characterThreshold: 1,
+                delay: 100
+            }
+        });
+
+        let luaCompleter = {
+            getCompletions: function (editor, session, pos, prefix, callback) {
+                const line = session.getLine(pos.row);
+                const beforeCursor = line.slice(0, pos.column);
+                
+                // Parse current code state
+                luaParser.parseCode(session.getValue());
+                
+                let completions = [];
+                
+                // Check if we're after a dot or colon (method completion)
+                const methodMatch = beforeCursor.match(/(\w+)[.:]\w*$/);
+                if (methodMatch) {
+                    const objectName = methodMatch[1];
+                    const varInfo = luaParser.variables.get(objectName);
+                    
+                    if (varInfo && varInfo.type === 'RobloxService') {
+                        // Get service-specific methods
+                        completions = luaParser.getServiceMethods(objectName);
+                    } else {
+                        // Get regular method completions
+                        completions = this.getMethodCompletions(objectName);
+                    }
+                } else {
+                    // Get contextual completions (variables)
+                    const contextualCompletions = luaParser.getContextualCompletions(prefix, pos.row, pos.column);
+                    
+                    // Get standard completions
+                    const standardCompletions = this.getStandardCompletions();
+                    
+                    // Combine completions, prioritizing contextual ones
+                    completions = [...contextualCompletions, ...standardCompletions];
+                    
+                    // Filter completions based on prefix if it exists
+                    if (prefix) {
+                        completions = completions.filter(completion => 
+                            completion.caption ? 
+                                completion.caption.toLowerCase().startsWith(prefix.toLowerCase()) :
+                                completion.value.toLowerCase().startsWith(prefix.toLowerCase())
+                        );
+                    }
+                    
+                    // Sort completions by score and then alphabetically
+                    completions.sort((a, b) => {
+                        if (a.score !== b.score) {
+                            return b.score - a.score;
+                        }
+                        return (a.caption || a.value).localeCompare(b.caption || b.value);
+                    });
+                }
+                
+                callback(null, completions);
+            },
+            
+            getMethodCompletions: function(objectName) {
+                // Add object-specific method completions
+                const methodCompletions = {
+                    string: [
+                        { value: 'len()', score: 1000, meta: 'method', docText: 'Returns the length of the string' },
+                        { value: 'sub(start, end)', score: 1000, meta: 'method', docText: 'Returns substring from start to end' },
+                        // Add more string methods...
+                    ],
+                    table: [
+                        { value: 'insert(value)', score: 1000, meta: 'method', docText: 'Inserts value at the end of the table' },
+                        { value: 'remove([pos])', score: 1000, meta: 'method', docText: 'Removes and returns element at position pos' },
+                        // Add more table methods...
+                    ],
+                    // Add more object types...
+                };
+                
+                const varInfo = luaParser.variables.get(objectName);
+                return varInfo && methodCompletions[varInfo.type] || [];
+            },
+            
+            getStandardCompletions: function() {
+                return [
+                    // Lua Keywords
+                    { value: 'and', score: 1000, meta: 'keyword' },
+                    { value: 'break', score: 1000, meta: 'keyword' },
+                    { value: 'do', score: 1000, meta: 'keyword' },
+                    { value: 'else', score: 1000, meta: 'keyword' },
+                    { value: 'elseif', score: 1000, meta: 'keyword' },
+                    { value: 'end', score: 1000, meta: 'keyword' },
+                    { value: 'false', score: 1000, meta: 'keyword' },
+                    { value: 'for', score: 1000, meta: 'keyword' },
+                    { value: 'function', score: 1000, meta: 'keyword' },
+                    { value: 'if', score: 1000, meta: 'keyword' },
+                    { value: 'in', score: 1000, meta: 'keyword' },
+                    { value: 'local', score: 1000, meta: 'keyword' },
+                    { value: 'nil', score: 1000, meta: 'keyword' },
+                    { value: 'not', score: 1000, meta: 'keyword' },
+                    { value: 'or', score: 1000, meta: 'keyword' },
+                    { value: 'repeat', score: 1000, meta: 'keyword' },
+                    { value: 'return', score: 1000, meta: 'keyword' },
+                    { value: 'then', score: 1000, meta: 'keyword' },
+                    { value: 'true', score: 1000, meta: 'keyword' },
+                    { value: 'until', score: 1000, meta: 'keyword' },
+                    { value: 'while', score: 1000, meta: 'keyword' },
+
+                    // Roblox Services
+                    { value: 'game:GetService("Players")', score: 1000, meta: 'service', docText: 'Players service for managing players' },
+                    { value: 'game:GetService("Workspace")', score: 1000, meta: 'service', docText: 'Primary world space' },
+                    { value: 'game:GetService("ReplicatedStorage")', score: 1000, meta: 'service', docText: 'Storage replicated to all clients' },
+                    { value: 'game:GetService("RunService")', score: 1000, meta: 'service', docText: 'Service for game lifecycle events' },
+                    { value: 'game:GetService("TweenService")', score: 1000, meta: 'service', docText: 'Service for creating tweens' },
+                    { value: 'game:GetService("UserInputService")', score: 1000, meta: 'service', docText: 'Service for handling user input' },
+                    { value: 'game:GetService("HttpService")', score: 1000, meta: 'service', docText: 'Service for HTTP requests' },
+                    { value: 'game:GetService("Debris")', score: 1000, meta: 'service', docText: 'Service for cleaning up objects' },
+                    { value: 'game:GetService("MarketplaceService")', score: 1000, meta: 'service', docText: 'Service for marketplace interactions' },
+
+                    // Roblox Instance Methods
+                    { value: ':Clone()', score: 900, meta: 'method', docText: 'Creates a copy of the instance' },
+                    { value: ':Destroy()', score: 900, meta: 'method', docText: 'Destroys the instance' },
+                    { value: ':FindFirstChild(name)', score: 900, meta: 'method', docText: 'Finds first child with given name' },
+                    { value: ':WaitForChild(name)', score: 900, meta: 'method', docText: 'Waits for child with given name' },
+                    { value: ':GetChildren()', score: 900, meta: 'method', docText: 'Gets all children' },
+                    { value: ':GetDescendants()', score: 900, meta: 'method', docText: 'Gets all descendants' },
+                    { value: ':IsA(className)', score: 900, meta: 'method', docText: 'Checks if instance is of given class' },
+
+                    // Roblox Properties
+                    { value: '.Name', score: 900, meta: 'property', docText: 'Name of the instance' },
+                    { value: '.Parent', score: 900, meta: 'property', docText: 'Parent of the instance' },
+                    { value: '.Position', score: 900, meta: 'property', docText: 'Position in 3D space' },
+                    { value: '.Size', score: 900, meta: 'property', docText: 'Size of the instance' },
+                    { value: '.CFrame', score: 900, meta: 'property', docText: 'Position and orientation' },
+                    { value: '.Transparency', score: 900, meta: 'property', docText: 'Transparency value' },
+                    { value: '.Enabled', score: 900, meta: 'property', docText: 'Enabled state' },
+                    { value: '.Visible', score: 900, meta: 'property', docText: 'Visibility state' },
+
+                    // Roblox Constructors
+                    { value: 'Instance.new("Part")', score: 800, meta: 'constructor', docText: 'Creates a new Part instance' },
+                    { value: 'Vector3.new()', score: 800, meta: 'constructor', docText: 'Creates a new Vector3' },
+                    { value: 'CFrame.new()', score: 800, meta: 'constructor', docText: 'Creates a new CFrame' },
+                    { value: 'Color3.fromRGB()', score: 800, meta: 'constructor', docText: 'Creates a new Color3 from RGB values' },
+                    { value: 'UDim2.new()', score: 800, meta: 'constructor', docText: 'Creates a new UDim2' },
+
+                    // Roblox Events
+                    { value: '.Changed', score: 800, meta: 'event', docText: 'Fires when a property changes' },
+                    { value: '.Touched', score: 800, meta: 'event', docText: 'Fires when object is touched' },
+                    { value: '.TouchEnded', score: 800, meta: 'event', docText: 'Fires when touch ends' },
+                    { value: '.Activated', score: 800, meta: 'event', docText: 'Fires when activated' },
+
+                    // Lua Standard Library Functions
+                    { value: 'print()', score: 900, meta: 'function', docText: 'Prints to output' },
+                    { value: 'warn()', score: 900, meta: 'function', docText: 'Prints warning to output' },
+                    { value: 'error()', score: 900, meta: 'function', docText: 'Raises an error' },
+                    { value: 'assert()', score: 900, meta: 'function', docText: 'Asserts a condition' },
+                    { value: 'type()', score: 900, meta: 'function', docText: 'Gets type of value' },
+                    { value: 'pairs()', score: 900, meta: 'function', docText: 'Iterates over table' },
+                    { value: 'ipairs()', score: 900, meta: 'function', docText: 'Iterates over array part of table' },
+                    { value: 'next()', score: 900, meta: 'function', docText: 'Gets next key in table' },
+                    { value: 'select()', score: 900, meta: 'function', docText: 'Selects arguments' },
+                    { value: 'tonumber()', score: 900, meta: 'function', docText: 'Converts to number' },
+                    { value: 'tostring()', score: 900, meta: 'function', docText: 'Converts to string' },
+
+                    // Math Library
+                    { value: 'math.abs()', score: 800, meta: 'math', docText: 'Absolute value' },
+                    { value: 'math.ceil()', score: 800, meta: 'math', docText: 'Ceiling value' },
+                    { value: 'math.floor()', score: 800, meta: 'math', docText: 'Floor value' },
+                    { value: 'math.max()', score: 800, meta: 'math', docText: 'Maximum value' },
+                    { value: 'math.min()', score: 800, meta: 'math', docText: 'Minimum value' },
+                    { value: 'math.random()', score: 800, meta: 'math', docText: 'Random number' },
+                    { value: 'math.randomseed()', score: 800, meta: 'math', docText: 'Sets random seed' },
+                    { value: 'math.pi', score: 800, meta: 'math', docText: 'Pi constant' },
+
+                    // String Library
+                    { value: 'string.len()', score: 800, meta: 'string', docText: 'String length' },
+                    { value: 'string.sub()', score: 800, meta: 'string', docText: 'Substring' },
+                    { value: 'string.upper()', score: 800, meta: 'string', docText: 'Uppercase string' },
+                    { value: 'string.lower()', score: 800, meta: 'string', docText: 'Lowercase string' },
+                    { value: 'string.find()', score: 800, meta: 'string', docText: 'Find substring' },
+                    { value: 'string.match()', score: 800, meta: 'string', docText: 'Match pattern' },
+                    { value: 'string.gsub()', score: 800, meta: 'string', docText: 'Global substitute' },
+
+                    // Table Library
+                    { value: 'table.insert()', score: 800, meta: 'table', docText: 'Insert into table' },
+                    { value: 'table.remove()', score: 800, meta: 'table', docText: 'Remove from table' },
+                    { value: 'table.concat()', score: 800, meta: 'table', docText: 'Concatenate table' },
+                    { value: 'table.sort()', score: 800, meta: 'table', docText: 'Sort table' },
+                    { value: 'table.unpack()', score: 800, meta: 'table', docText: 'Unpack table' }
+                ];
+            }
+        };
+
+        editor.completers = [luaCompleter];
+
+        function getCode() {
+            return editor.getValue();
+        }
+
+        function setCode(code) {
+            editor.setValue(code, -1);
+        }
+
+        editor.session.on('changeScrollTop', function (scrollTop) {
+            requestAnimationFrame(() => {
+                editor.renderer.scrollBar.element.style.transform =
+                    `translateY(${scrollTop}px)`;
+            });
+        });
+
+        editor.container.style.transition = 'box-shadow 0.3s ease';
+        editor.on('focus', () => {
+            editor.container.style.boxShadow = 'inset 0 0 0 2px #666';
+        });
+        editor.on('blur', () => {
+            editor.container.style.boxShadow = 'none';
+        });
+
+        editor.renderer.setScrollMargin(10, 10, 0, 0);
+        editor.renderer.setAnimatedScroll(true);
+
+        let minimapEditor = ace.edit("minimap-content");
+        minimapEditor.setTheme("ace/theme/tomorrow_night");
+        minimapEditor.session.setMode("ace/mode/lua");
+        minimapEditor.setReadOnly(true);
+        minimapEditor.renderer.setShowGutter(false);
+        minimapEditor.renderer.setShowPrintMargin(false);
+        minimapEditor.renderer.hideCursor();
+        minimapEditor.setHighlightActiveLine(false);
+        minimapEditor.setShowPrintMargin(false);
+        minimapEditor.setOptions({
+            fontSize: "4px",
+            fontFamily: "'Fira Code', monospace",
+            highlightActiveLine: false,
+            highlightGutterLine: false,
+            showLineNumbers: false,
+            showFoldWidgets: false,
+            displayIndentGuides: false,
+            showPrintMargin: false,
+            maxLines: Infinity,
+            wrap: false
+        });
+
+        editor.session.on('change', function() {
+            minimapEditor.setValue(editor.getValue(), -1);
+            updateMinimapScale();
+        });
+
+        minimapEditor.setValue(editor.getValue(), -1);
+        updateMinimapScale();
+
+        document.getElementById('minimap').addEventListener('click', function (e) {
+            const totalHeight = editor.session.getLength() * editor.renderer.lineHeight;
+            const clickRatio = e.offsetY / this.offsetHeight;
+            const scrollTop = totalHeight * clickRatio - (editor.container.clientHeight / 2);
+            editor.session.setScrollTop(scrollTop);
+        });
+
+        window.addEventListener('resize', updateMinimapScale);
+
+        editor.container.style.right = '120px';
+
+        function updateMinimapScale() {
+            const editorHeight = editor.container.clientHeight;
+            const totalLines = editor.session.getLength();
+            const lineHeight = editor.renderer.lineHeight;
+            const totalHeight = totalLines * lineHeight;
+            const scale = Math.min(editorHeight / totalHeight, 1.2);
+            
+            const minimapContent = document.getElementById('minimap-content');
+            minimapContent.style.transform = `scale(${scale})`;
+            minimapContent.style.width = (120 / scale) + 'px';
+
+            const sliderHeight = Math.max((editorHeight / totalHeight) * editorHeight, 30);
+            const sliderTop = (editor.session.getScrollTop() / (totalHeight - editorHeight)) * (editorHeight - sliderHeight);
+            const slider = document.getElementById('minimap-slider');
+            slider.style.height = sliderHeight + 'px';
+            slider.style.top = sliderTop + 'px';
+        }
+
+        editor.commands.addCommand({
+            name: 'find',
+            bindKey: {win: 'Ctrl-F', mac: 'Command-F'},
+            exec: function(editor) {
+                ace.require("ace/ext/searchbox").Search(editor);
+            }
+        });
+
+        editor.commands.addCommand({
+            name: 'replace',
+            bindKey: {win: 'Ctrl-H', mac: 'Command-Option-F'},
+            exec: function(editor) {
+                ace.require("ace/ext/searchbox").Search(editor, true);
+            }
+        });
+
+        document.addEventListener('dragover', function(e) {
+            e.preventDefault();
+        });
+
+        document.addEventListener('drop', function(e) {
+            e.preventDefault();
+            
+            if (e.dataTransfer.files.length) {
+                const file = e.dataTransfer.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    editor.setValue(e.target.result, -1);
+                };
+                
+                reader.readAsText(file);
+            }
+        });
+
+        let luaParser = {
+            variables: new Map(),
+            functions: new Map(),
+            currentScope: [],
+            services: new Map(),
+            
+            parseCode: function(code) {
+                this.variables.clear();
+                this.functions.clear();
+                this.currentScope = [];
+                this.services.clear();
+                
+                const lines = code.split('\n');
+                let scope = 'global';
+                let blockDepth = 0;
+                
+                lines.forEach((line, lineNumber) => {
+                    // Parse Roblox service declarations
+                    const serviceMatch = line.match(/local\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*game:GetService\(["']([^"']+)["']\)/);
+                    if (serviceMatch) {
+                        const [_, varName, serviceName] = serviceMatch;
+                        this.services.set(varName, {
+                            name: varName,
+                            service: serviceName,
+                            scope: scope,
+                            line: lineNumber
+                        });
+                        this.variables.set(varName, {
+                            name: varName,
+                            type: 'RobloxService',
+                            serviceType: serviceName,
+                            scope: scope,
+                            line: lineNumber
+                        });
+                    }
+                    
+                    // Parse local variables with assignment
+                    const localAssignMatch = line.match(/local\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.+)/);
+                    if (localAssignMatch && !serviceMatch) {
+                        const [_, varName, value] = localAssignMatch;
+                        this.variables.set(varName, {
+                            name: varName,
+                            scope: scope,
+                            line: lineNumber,
+                            type: this.inferType(value),
+                            value: value.trim()
+                        });
+                    }
+                    
+                    // Parse local variables without assignment
+                    const localDeclareMatch = line.match(/local\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*$/);
+                    if (localDeclareMatch) {
+                        const [_, varName] = localDeclareMatch;
+                        this.variables.set(varName, {
+                            name: varName,
+                            scope: scope,
+                            line: lineNumber,
+                            type: 'unknown',
+                            value: null
+                        });
+                    }
+                    
+                    // Track scope changes
+                    if (line.match(/(function|do|then|repeat)\b/)) {
+                        blockDepth++;
+                        this.currentScope.push(`block_${blockDepth}`);
+                    }
+                    if (line.match(/(end)\b/)) {
+                        this.currentScope.pop();
+                        blockDepth = Math.max(0, blockDepth - 1);
+                    }
+                });
+            },
+            
+            inferType: function(value) {
+                if (!value) return 'unknown';
+                if (value.match(/^["']/)) return 'string';
+                if (value.match(/^\d/)) return 'number';
+                if (value.match(/^(true|false)$/)) return 'boolean';
+                if (value.match(/^{/)) return 'table';
+                if (value.match(/^function/)) return 'function';
+                if (value.match(/game:GetService/)) return 'RobloxService';
+                if (value.match(/Instance\.new/)) return 'Instance';
+                if (value.match(/Vector3\.new/)) return 'Vector3';
+                if (value.match(/CFrame\.new/)) return 'CFrame';
+                return 'unknown';
+            },
+            
+            getContextualCompletions: function(prefix, row, column) {
+                const completions = [];
+                
+                // Add variables in current scope
+                this.variables.forEach((variable, name) => {
+                    completions.push({
+                        caption: name,
+                        value: name,
+                        score: 1200, // Higher score for user-defined variables
+                        meta: variable.type,
+                        type: variable.type,
+                        docText: `${variable.type}${variable.value ? ` = ${variable.value}` : ''}`
+                    });
+                });
+                
+                // Add functions in current scope
+                this.functions.forEach((func, name) => {
+                    completions.push({
+                        caption: `${name}(${func.params.join(', ')})`,
+                        value: name,
+                        score: 1200,
+                        meta: 'function',
+                        docText: `function(${func.params.join(', ')})`
+                    });
+                });
+                
+                return completions;
+            },
+            
+            getServiceMethods: function(serviceName) {
+                const serviceInfo = this.services.get(serviceName);
+                if (!serviceInfo) return [];
+                
+                // Add service-specific methods based on the service type
+                const serviceMethods = {
+                    ReplicatedStorage: [
+                        { value: ':WaitForChild()', score: 1000, meta: 'method', docText: 'Waits for a child to exist' },
+                        { value: ':GetChildren()', score: 1000, meta: 'method', docText: 'Gets all children' },
+                        { value: ':FindFirstChild()', score: 1000, meta: 'method', docText: 'Finds first child matching name' }
+                    ],
+                    Players: [
+                        { value: ':GetPlayers()', score: 1000, meta: 'method', docText: 'Gets all players' },
+                        { value: '.LocalPlayer', score: 1000, meta: 'property', docText: 'Local player instance' },
+                        { value: ':GetPlayerFromCharacter()', score: 1000, meta: 'method', docText: 'Gets player from character' }
+                    ],
+                    // Add more services and their methods as needed
+                };
+                
+                return serviceMethods[serviceInfo.service] || [];
+            }
+        };
+
+        // Add these event listeners for better completion behavior
+        editor.on('change', function(e) {
+            // Parse code on change for real-time updates
+            const code = editor.getValue();
+            luaParser.parseCode(code);
+        });
+
+        // Add custom tooltips for function signatures
+        editor.on('mousemove', function(e) {
+            const pos = editor.getCursorPosition();
+            const token = editor.session.getTokenAt(pos.row, pos.column);
+            
+            if (token && token.type === 'identifier') {
+                const funcInfo = luaParser.functions.get(token.value);
+                if (funcInfo) {
+                    // Show function signature tooltip
+                    // You'll need to implement the actual tooltip UI
+                }
+            }
+        });
+
+        // Enhance the autocompletion popup styles
+        const enhancedStyles = `
+            .ace_autocomplete {
+                width: 350px !important;
+            }
+            
+            .ace_autocomplete .ace_completion-meta {
+                opacity: 0.7;
+                font-size: 0.9em;
+            }
+            
+            .ace_tooltip {
+                background: #282a36;
+                color: #f8f8f2;
+                border: 1px solid #44475a;
+                border-radius: 4px;
+                padding: 8px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                max-width: 400px;
+                font-family: 'Fira Code', monospace;
+            }
+        `;
+
+        style.textContent += enhancedStyles;
+
+        // Add these styles for smoother popup animations
+        const popupStyles = `
+            .ace_autocomplete {
+                transition: opacity 0.1s ease-in-out;
+                opacity: 0;
+                animation: fadeIn 0.1s ease-in-out forwards;
+            }
+            
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(-5px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            
+            .ace_autocomplete .ace_line {
+                transition: background-color 0.1s ease-in-out;
+            }
+            
+            .ace_autocomplete .ace_completion-highlight {
+                transition: color 0.1s ease-in-out;
+            }
+        `;
+
+        style.textContent += popupStyles;
+
+        // Update the editor's container style
+        editor.container.style.height = '100%';
+        editor.container.style.position = 'absolute';
+    </script>
+</body>
+
+</html>

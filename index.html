@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Primary Meta Tags -->
+    <title>Lua Editor - Online Lua Code Editor</title>
+    <meta name="title" content="Lua Editor - Online Lua Code Editor">
+    <meta name="description" content="Professional online Lua code editor with syntax highlighting, autocompletion, and real-time execution capabilities.">
+    <meta name="keywords" content="lua, code editor, programming, development, online editor, lua editor">
+    <meta name="author" content="Your Name">
+    <meta name="theme-color" content="#0a0b11">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://your-domain.com">
+    <meta property="og:title" content="Lua Editor - Online Lua Code Editor">
+    <meta property="og:description" content="Professional online Lua code editor with syntax highlighting, autocompletion, and real-time execution capabilities.">
+    <meta property="og:image" content="https://your-domain.com/images/og-image.png">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://your-domain.com">
+    <meta property="twitter:title" content="Lua Editor - Online Lua Code Editor">
+    <meta property="twitter:description" content="Professional online Lua code editor with syntax highlighting, autocompletion, and real-time execution capabilities.">
+    <meta property="twitter:image" content="https://your-domain.com/images/twitter-image.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/logos/lua-icon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/logos/lua-icon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/logos/lua-icon-180x180.png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- External Resources -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    
+    <!-- Security -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval';">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="application-name" content="Lua Editor">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #0a0b11;
+            font-family: 'Fira Code', monospace;
+        }
+
+        #container {
+            width: 106.3vw;
+            height: 100vh;
+            display: flex;
+            box-shadow: 0 0 30px rgba(88, 101, 242, 0.2);
+            position: relative;
+        }
+
+        #container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            box-shadow: inset 0 0 100px rgba(88, 101, 242, 0.1);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #editor {
+            width: calc(100% - 120px);
+            height: 100%;
+            opacity: 0;
+            animation: fadeInEditor 0.3s ease-out forwards;
+            position: relative;
+        }
+
+        #editor::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            box-shadow: 
+                inset 0 0 30px rgba(88, 101, 242, 0.1),
+                0 0 20px rgba(136, 192, 255, 0.1);
+            z-index: 2;
+        }
+
+        @keyframes fadeInEditor {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom scrollbar with neon effect */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0d0e15;
+            border-radius: 3px;
+            box-shadow: inset 0 0 5px rgba(88, 101, 242, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2d3144;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3d4260;
+            box-shadow: 0 0 10px rgba(41, 98, 255, 0.3);
+        }
+
+        /* Selection style */
+        ::selection {
+            background: rgba(41, 98, 255, 0.2);
+        }
+
+        /* Add this to your existing styles */
+        .monaco-editor .suggest-widget {
+            border: 1px solid rgba(136, 192, 255, 0.2) !important;
+            box-shadow: 0 0 20px rgba(88, 101, 242, 0.2) !important;
+            backdrop-filter: blur(8px);
+        }
+
+        .monaco-editor .suggest-widget .monaco-list-row:hover {
+            background-color: rgba(88, 101, 242, 0.2) !important;
+        }
+
+        .monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused {
+            background-color: rgba(88, 101, 242, 0.3) !important;
+        }
+
+        /* Neon text effect for editor content */
+        .monaco-editor .view-line span {
+            text-shadow: 0 0 2px rgba(248, 248, 242, 0.4);
+        }
+
+        /* Enhanced neon effect for specific syntax elements */
+        .monaco-editor .mtk9 {  /* keywords */
+            text-shadow: 0 0 8px rgba(255, 121, 198, 0.5);
+        }
+
+        .monaco-editor .mtk20 {  /* strings */
+            text-shadow: 0 0 8px rgba(80, 250, 123, 0.5);
+        }
+
+        .monaco-editor .mtk6 {  /* numbers */
+            text-shadow: 0 0 8px rgba(255, 184, 108, 0.5);
+        }
+
+        .monaco-editor .mtk22 {  /* functions */
+            text-shadow: 0 0 8px rgba(102, 217, 239, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="editor"></div>
+    </div>
+    <script>
+        // Wait for the loader to be ready
+        window.onload = () => {
+            require.config({ 
+                paths: { 
+                    'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs'
+                }
+            });
+            
+            // Before loading Monaco, set the worker paths
+            window.MonacoEnvironment = {
+                getWorkerUrl: function(workerId, label) {
+                    return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
+                        self.MonacoEnvironment = {
+                            baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/'
+                        };
+                    `)}`;
+                }
+            };
+            
+            require(['vs/editor/editor.main'], function() {
+                // Define custom Lua language
+                monaco.languages.register({ id: 'lua' });
+
+                // Define Lua syntax highlighting
+                monaco.languages.setMonarchTokensProvider('lua', {
+                    defaultToken: '',
+                    tokenPostfix: '.lua',
+
+                    keywords: [
+                        'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for',
+                        'function', 'if', 'in', 'local', 'nil', 'not', 'or', 'repeat',
+                        'return', 'then', 'true', 'until', 'while',
+                        'continue', 'export', 'type', 'typeof', 'task.wait', 'task.spawn',
+                        'spawn', 'wait', 'game', 'workspace', 'script', 'Instance.new',
+                        'Vector3', 'CFrame', 'Color3', 'Enum', 'Ray', 'Region3',
+                        ':WaitForChild', ':FindFirstChild', ':FindFirstAncestor',
+                        ':GetChildren', ':GetDescendants', ':IsA', ':Clone',
+                        ':Destroy', ':GetAttribute', ':SetAttribute', ':Connect',
+                        ':Wait', ':FireServer', ':InvokeServer', ':FireClient',
+                        ':InvokeClient', ':GetService'
+                    ],
+
+                    builtins: [
+                        'assert', 'collectgarbage', 'error', 'getfenv', 'getmetatable', 'ipairs',
+                        'loadstring', 'next', 'pairs', 'pcall', 'print', 'rawequal', 'rawget',
+                        'rawset', 'select', 'setfenv', 'setmetatable', 'tonumber', 'tostring',
+                        'type', 'unpack', 'xpcall',
+                        'warn', 'require', 'table.insert', 'table.remove', 'table.find',
+                        'string.format', 'string.sub', 'string.len', 'string.match',
+                        'math.abs', 'math.random', 'math.floor', 'math.ceil',
+                        'game:GetService', 'Workspace', 'Players', 'ReplicatedStorage',
+                        'ServerScriptService', 'StarterGui', 'RunService', 'TweenService',
+                        'UserInputService', 'Debris', 'HttpService', 'MarketplaceService',
+                        'PhysicsService', 'SoundService', 'Teams', 'TweenService',
+                        'CFrame.new', 'Vector2.new', 'Vector3.new', 'Color3.new', 'Color3.fromRGB',
+                        'Instance.new', 'TweenInfo.new', 'UDim2.new', 'Ray.new',
+                        'NumberRange.new', 'NumberSequence.new', 'ColorSequence.new',
+                        'Enum.KeyCode', 'Enum.UserInputType', 'Enum.Material',
+                        'Enum.EasingStyle', 'Enum.EasingDirection', 'Enum.Font',
+                        'Enum.TextXAlignment', 'Enum.TextYAlignment'
+                    ],
+
+                    brackets: [
+                        { token: 'delimiter.bracket', open: '{', close: '}' },
+                        { token: 'delimiter.array', open: '[', close: ']' },
+                        { token: 'delimiter.parenthesis', open: '(', close: ')' }
+                    ],
+
+                    operators: [
+                        '+', '-', '*', '/', '%', '^', '#', '==', '~=', '<=', '>=', '<', '>', '=',
+                        ';', ':', ',', '.', '..', '...', '+=', '-=', '*=', '/=', '%=', '^=', '..='
+                    ],
+
+                    escapes: /\\(?:[abfnrtv\\"']|\d{1,3})/,
+
+                    symbols: /[=><!~?:&|+\-*\/\^%]+/,
+
+                    tokenizer: {
+                        root: [
+                            [/[a-zA-Z_]\w*/, {
+                                cases: {
+                                    '@keywords': 'keyword',
+                                    '@builtins': 'type.identifier',
+                                    '@default': 'identifier'
+                                }
+                            }],
+                            { include: '@whitespace' },
+                            [/[{}()\[\]]/, '@brackets'],
+                            [/[<>](?!@symbols)/, '@brackets'],
+                            [/@symbols/, {
+                                cases: {
+                                    '@operators': 'operator',
+                                    '@default': ''
+                                }
+                            }],
+                            [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+                            [/0[xX][0-9a-fA-F]+/, 'number.hex'],
+                            [/\d+/, 'number'],
+                            [/[;,.]/, 'delimiter'],
+                            [/"([^"\\]|\\.)*$/, 'string.invalid'],
+                            [/'([^'\\]|\\.)*$/, 'string.invalid'],
+                            [/"/, 'string', '@string."'],
+                            [/'/, 'string', '@string.\''],
+                            [/\[=*\[/, 'string', '@multiLineString']
+                        ],
+
+                        whitespace: [
+                            [/[ \t\r\n]+/, 'white'],
+                            [/--\[([=]*)\[/, 'comment', '@comment.$1'],
+                            [/--.*$/, 'comment'],
+                        ],
+
+                        comment: [
+                            [/[^\]]+/, 'comment'],
+                            [/\]([=]*)\]/, {
+                                cases: {
+                                    '$1==$S2': { token: 'comment', next: '@pop' },
+                                    '@default': 'comment'
+                                }
+                            }],
+                            [/./, 'comment']
+                        ],
+
+                        string: [
+                            [/[^\\"']+/, 'string'],
+                            [/@escapes/, 'string.escape'],
+                            [/\\./, 'string.escape.invalid'],
+                            [/["']/, {
+                                cases: {
+                                    '$#==$S2': { token: 'string', next: '@pop' },
+                                    '@default': 'string'
+                                }
+                            }]
+                        ],
+
+                        multiLineString: [
+                            [/[^\]]+/, 'string'],
+                            [/\]([=]*)\]/, {
+                                cases: {
+                                    '$1==$S2': { token: 'string', next: '@pop' },
+                                    '@default': 'string'
+                                }
+                            }],
+                            [/./, 'string']
+                        ]
+                    }
+                });
+
+                // Create Monaco Editor instance
+                const editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: 'print("Hello, World!")',
+                    language: 'lua',
+                    theme: 'neon-dark',
+                    fontSize: 14,
+                    fontFamily: "'Fira Code', monospace",
+                    fontLigatures: true,
+                    cursorBlinking: 'phase',
+                    cursorSmoothCaretAnimation: true,
+                    renderWhitespace: 'selection',
+                    suggest: {
+                        snippetsPreventQuickSuggestions: false,
+                        showIcons: true,
+                        showStatusBar: true,
+                        preview: true,
+                        maxVisibleSuggestions: 12,
+                        selectionMode: 'always'
+                    },
+                    glowOpacity: 0.5,
+                    renderFinalNewline: true,
+                    matchBrackets: 'always',
+                    links: true,
+                    mouseWheelZoom: true,
+                    smoothScrolling: true,
+                    dragAndDrop: true,
+                    formatOnPaste: true,
+                    formatOnType: true,
+                    automaticLayout: true,
+                    padding: { top: 12 },
+                    lineHeight: 1.6,
+                    roundedSelection: true,
+                    glyphMargin: false,
+                    renderLineHighlight: 'all',
+                    contextmenu: true,
+                    mouseWheelZoom: true,
+                    suggest: {
+                        snippetsPreventQuickSuggestions: false,
+                        showIcons: true,
+                        showStatusBar: true,
+                        preview: true
+                    }
+                });
+
+                // Add custom theme
+                monaco.editor.defineTheme('neon-dark', {
+                    base: 'vs-dark',
+                    inherit: true,
+                    rules: [
+                        { token: 'comment', foreground: '6272a4', fontStyle: 'italic' },
+                        { token: 'keyword', foreground: 'ff79c6', fontStyle: 'bold' },  // Bright pink
+                        { token: 'string', foreground: '50fa7b' },   // Neon green
+                        { token: 'number', foreground: 'ffb86c' },   // Bright orange
+                        { token: 'operator', foreground: '8be9fd' }, // Cyan
+                        { token: 'type.identifier', foreground: 'bd93f9' }, // Purple
+                        { token: 'function', foreground: '66d9ef', fontStyle: 'bold' }, // Blue
+                        { token: 'variable', foreground: 'f8f8f2' }, // Bright white
+                        { token: 'constant', foreground: 'bd93f9' }  // Purple
+                    ],
+                    colors: {
+                        'editor.background': '#0a0b11',
+                        'editor.foreground': '#f8f8f2',
+                        'editor.lineHighlightBackground': '#1a1b2644',
+                        'editor.lineHighlightBorder': '#1a1b2600',
+                        'editor.selectionBackground': '#44475a',
+                        'editor.inactiveSelectionBackground': '#1f2233',
+                        'editorCursor.foreground': '#f8f8f2',
+                        'editorWhitespace.foreground': '#3b3b4d',
+                        'editorLineNumber.foreground': '#6272a4',
+                        'editorLineNumber.activeForeground': '#ff79c6',
+                        'editor.selectionHighlightBackground': '#44475a77',
+                        'editor.wordHighlightBackground': '#44475a77',
+                        'editor.wordHighlightStrongBackground': '#44475a77',
+                        'editorBracketMatch.background': '#44475a77',
+                        'editorBracketMatch.border': '#8be9fd',
+                        'editorGutter.background': '#0a0b11',
+                        'editorWidget.background': '#1a1b26',
+                        'editorSuggestWidget.background': '#12131a',
+                        'editorSuggestWidget.border': '#2d3144',
+                        'editorSuggestWidget.selectedBackground': 'rgba(88, 101, 242, 0.2)',
+                        'editorSuggestWidget.highlightForeground': '#50fa7b',
+                        'editorSuggestWidget.focusHighlightForeground': '#8be9fd',
+                        'editorHoverWidget.background': '#12131a',
+                        'editorHoverWidget.border': '#2d3144',
+                        'editorIndentGuide.background': '#1a1b26',
+                        'editorIndentGuide.activeBackground': '#2d3144',
+                        'list.hoverBackground': 'rgba(88, 101, 242, 0.1)',
+                        'list.focusBackground': 'rgba(88, 101, 242, 0.2)',
+                        'list.activeSelectionBackground': 'rgba(88, 101, 242, 0.3)',
+                        'list.highlightForeground': '#50fa7b'
+                    }
+                });
+
+                // Set the custom theme
+                monaco.editor.setTheme('neon-dark');
+
+                // Add Lua-specific completions
+                monaco.languages.registerCompletionItemProvider('lua', {
+                    provideCompletionItems: (model, position) => {
+                        const wordUntilPosition = model.getWordUntilPosition(position);
+                        const range = {
+                            startLineNumber: position.lineNumber,
+                            endLineNumber: position.lineNumber,
+                            startColumn: wordUntilPosition.startColumn,
+                            endColumn: wordUntilPosition.endColumn
+                        };
+
+                        const suggestions = [
+                            {
+                                label: 'print',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'print(${1:value})',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Prints a value to the console'
+                            },
+                            {
+                                label: 'Instance.new',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'Instance.new("${1:ClassName}")',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Creates a new Roblox instance'
+                            },
+                            {
+                                label: 'Vector3.new',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'Vector3.new(${1:x}, ${2:y}, ${3:z})',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Creates a new Vector3'
+                            },
+                            {
+                                label: 'task.wait',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'task.wait(${1:seconds})',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Yields the current thread for the specified duration'
+                            },
+                            {
+                                label: 'local function',
+                                kind: monaco.languages.CompletionItemKind.Snippet,
+                                insertText: [
+                                    'local function ${1:name}(${2:params})',
+                                    '\t${3:-- body}',
+                                    'end'
+                                ].join('\n'),
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                            },
+                            {
+                                label: ':WaitForChild',
+                                kind: monaco.languages.CompletionItemKind.Method,
+                                insertText: ':WaitForChild("${1:name}"${2:, ${3:timeout}})',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Waits for a child instance with the given name'
+                            },
+                            {
+                                label: ':FindFirstChild',
+                                kind: monaco.languages.CompletionItemKind.Method,
+                                insertText: ':FindFirstChild("${1:name}"${2:, ${3:recursive}})',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Finds the first child instance with the given name'
+                            },
+                            {
+                                label: 'Color3.fromRGB',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'Color3.fromRGB(${1:r}, ${2:g}, ${3:b})',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Creates a Color3 value from RGB values (0-255)'
+                            },
+                            {
+                                label: 'UDim2.new',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'UDim2.new(${1:scaleX}, ${2:offsetX}, ${3:scaleY}, ${4:offsetY})',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Creates a new UDim2 value'
+                            },
+                            {
+                                label: ':Connect',
+                                kind: monaco.languages.CompletionItemKind.Method,
+                                insertText: ':Connect(function(${1:...})\n\t${2:-- body}\nend)',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Connects a function to an event'
+                            },
+                            {
+                                label: 'game:GetService',
+                                kind: monaco.languages.CompletionItemKind.Method,
+                                insertText: 'game:GetService("${1|Players,ReplicatedStorage,Workspace,Lighting,RunService,TweenService,UserInputService,HttpService,PhysicsService,SoundService,StarterGui,StarterPack,Teams,TextService,Debris,MarketplaceService|}")',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Gets a Roblox service by name'
+                            },
+                            // Add defined variables to suggestions
+                            ...[...definedVariables].map(variable => ({
+                                label: variable.name,
+                                kind: variable.kind === 'function' 
+                                    ? monaco.languages.CompletionItemKind.Function 
+                                    : monaco.languages.CompletionItemKind.Variable,
+                                insertText: variable.name,
+                                range: range,
+                                documentation: `${variable.kind === 'function' ? 'Function' : 'Variable'} defined at line ${variable.location.lineNumber}`
+                            }))
+                        ];
+
+                        return { suggestions };
+                    },
+                    triggerCharacters: ['.', ':', '_']
+                });
+
+                // Add variable tracking
+                let definedVariables = new Set();
+                let variableDeclarationRegex = /\blocal\s+([a-zA-Z_][a-zA-Z0-9_]*)/g;
+                let functionDeclarationRegex = /\bfunction\s+([a-zA-Z_][a-zA-Z0-9_]*)/g;
+                let localFunctionRegex = /\blocal\s+function\s+([a-zA-Z_][a-zA-Z0-9_]*)/g;
+
+                editor.onDidChangeModelContent((e) => {
+                    const model = editor.getModel();
+                    const content = model.getValue();
+                    
+                    // Clear previous variables
+                    definedVariables.clear();
+                    
+                    // Find all variable declarations
+                    let match;
+                    while ((match = variableDeclarationRegex.exec(content)) !== null) {
+                        definedVariables.add({
+                            name: match[1],
+                            kind: 'variable',
+                            location: model.getPositionAt(match.index)
+                        });
+                    }
+                    
+                    // Find all function declarations
+                    while ((match = functionDeclarationRegex.exec(content)) !== null) {
+                        definedVariables.add({
+                            name: match[1],
+                            kind: 'function',
+                            location: model.getPositionAt(match.index)
+                        });
+                    }
+                    
+                    // Find all local function declarations
+                    while ((match = localFunctionRegex.exec(content)) !== null) {
+                        definedVariables.add({
+                            name: match[1],
+                            kind: 'function',
+                            location: model.getPositionAt(match.index)
+                        });
+                    }
+                });
+
+                // Add hover provider for defined variables
+                monaco.languages.registerHoverProvider('lua', {
+                    provideHover: (model, position) => {
+                        const word = model.getWordAtPosition(position);
+                        if (!word) return;
+
+                        const variable = [...definedVariables].find(v => v.name === word.word);
+                        if (variable) {
+                            return {
+                                contents: [
+                                    { value: `**${variable.kind === 'function' ? 'Function' : 'Variable'}**: \`${variable.name}\`` },
+                                    { value: `Defined at line ${variable.location.lineNumber}` }
+                                ]
+                            };
+                        }
+                    }
+                });
+
+                // Add support for multiple variable declarations
+                const updateVariableTracking = (content) => {
+                    const multipleDeclarationRegex = /\blocal\s+([^=]+)=/g;
+                    let match;
+                    
+                    while ((match = multipleDeclarationRegex.exec(content)) !== null) {
+                        const variables = match[1].split(',').map(v => v.trim());
+                        variables.forEach(varName => {
+                            if (varName.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) {
+                                definedVariables.add({
+                                    name: varName,
+                                    kind: 'variable',
+                                    location: editor.getModel().getPositionAt(match.index)
+                                });
+                            }
+                        });
+                    }
+                };
+
+                // Update the onDidChangeModelContent event
+                editor.onDidChangeModelContent((e) => {
+                    const model = editor.getModel();
+                    const content = model.getValue();
+                    definedVariables.clear();
+                    updateVariableTracking(content);
+                });
+
+                // Add semantic token provider for better highlighting of defined variables
+                monaco.languages.registerDocumentSemanticTokensProvider('lua', {
+                    getLegend: () => ({
+                        tokenTypes: ['variable', 'function'],
+                        tokenModifiers: ['declaration', 'usage']
+                    }),
+                    provideDocumentSemanticTokens: (model) => {
+                        const tokens = [];
+                        const content = model.getValue();
+                        
+                        // Add tokens for all defined variables
+                        definedVariables.forEach(variable => {
+                            const regex = new RegExp(`\\b${variable.name}\\b`, 'g');
+                            let match;
+                            while ((match = regex.exec(content)) !== null) {
+                                const pos = model.getPositionAt(match.index);
+                                tokens.push({
+                                    line: pos.lineNumber - 1,
+                                    character: pos.column - 1,
+                                    length: variable.name.length,
+                                    tokenType: variable.kind === 'function' ? 'function' : 'variable',
+                                    tokenModifiers: []
+                                });
+                            }
+                        });
+
+                        return {
+                            data: new Uint32Array(tokens.flatMap(t => [
+                                t.line, t.character, t.length,
+                                t.tokenType === 'function' ? 0 : 1,
+                                0
+                            ]))
+                        };
+                    }
+                });
+
+                // Handle window resize
+                window.addEventListener('resize', () => {
+                    editor.layout();
+                });
+
+                // Add custom keybindings
+                editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+                    console.log('Executing:', editor.getValue());
+                });
+
+                // Expose editor instance globally for debugging
+                window.editor = editor;
+            });
+        };
+    </script>
+</body>
+
+</html>

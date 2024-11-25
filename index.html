@@ -406,7 +406,8 @@
                 triggerOnBackspace: true,
                 triggerOnDelete: false,
                 characterThreshold: 1,
-                delay: 50
+                delay: 50,
+                ghostText: true
             },
             enableSnippets: true,
             enableBasicAutocompletion: true,
@@ -439,7 +440,9 @@
             highlightActiveLine: true,
             hScrollBarAlwaysVisible: false,
             vScrollBarAlwaysVisible: false,
-            height: '100%'
+            height: '100%',
+            autoClosingBrackets: true,
+            autoClosingQuotes: true
         });
 
         editor.commands.on('afterExec', function(e) {
@@ -579,111 +582,59 @@
             
             getStandardCompletions: function() {
                 return [
-                    // Lua Keywords
-                    { value: 'and', score: 1000, meta: 'keyword' },
-                    { value: 'break', score: 1000, meta: 'keyword' },
-                    { value: 'do', score: 1000, meta: 'keyword' },
-                    { value: 'else', score: 1000, meta: 'keyword' },
-                    { value: 'elseif', score: 1000, meta: 'keyword' },
-                    { value: 'end', score: 1000, meta: 'keyword' },
-                    { value: 'false', score: 1000, meta: 'keyword' },
-                    { value: 'for', score: 1000, meta: 'keyword' },
-                    { value: 'function', score: 1000, meta: 'keyword' },
-                    { value: 'if', score: 1000, meta: 'keyword' },
-                    { value: 'in', score: 1000, meta: 'keyword' },
-                    { value: 'local', score: 1000, meta: 'keyword' },
-                    { value: 'nil', score: 1000, meta: 'keyword' },
-                    { value: 'not', score: 1000, meta: 'keyword' },
-                    { value: 'or', score: 1000, meta: 'keyword' },
-                    { value: 'repeat', score: 1000, meta: 'keyword' },
-                    { value: 'return', score: 1000, meta: 'keyword' },
-                    { value: 'then', score: 1000, meta: 'keyword' },
-                    { value: 'true', score: 1000, meta: 'keyword' },
-                    { value: 'until', score: 1000, meta: 'keyword' },
-                    { value: 'while', score: 1000, meta: 'keyword' },
-
-                    // Roblox Services
-                    { value: 'game:GetService("Players")', score: 1000, meta: 'service', docText: 'Players service for managing players' },
-                    { value: 'game:GetService("Workspace")', score: 1000, meta: 'service', docText: 'Primary world space' },
-                    { value: 'game:GetService("ReplicatedStorage")', score: 1000, meta: 'service', docText: 'Storage replicated to all clients' },
-                    { value: 'game:GetService("RunService")', score: 1000, meta: 'service', docText: 'Service for game lifecycle events' },
-                    { value: 'game:GetService("TweenService")', score: 1000, meta: 'service', docText: 'Service for creating tweens' },
-                    { value: 'game:GetService("UserInputService")', score: 1000, meta: 'service', docText: 'Service for handling user input' },
-                    { value: 'game:GetService("HttpService")', score: 1000, meta: 'service', docText: 'Service for HTTP requests' },
-                    { value: 'game:GetService("Debris")', score: 1000, meta: 'service', docText: 'Service for cleaning up objects' },
-                    { value: 'game:GetService("MarketplaceService")', score: 1000, meta: 'service', docText: 'Service for marketplace interactions' },
-
-                    // Roblox Instance Methods
-                    { value: ':Clone()', score: 900, meta: 'method', docText: 'Creates a copy of the instance' },
-                    { value: ':Destroy()', score: 900, meta: 'method', docText: 'Destroys the instance' },
-                    { value: ':FindFirstChild(name)', score: 900, meta: 'method', docText: 'Finds first child with given name' },
-                    { value: ':WaitForChild(name)', score: 900, meta: 'method', docText: 'Waits for child with given name' },
-                    { value: ':GetChildren()', score: 900, meta: 'method', docText: 'Gets all children' },
-                    { value: ':GetDescendants()', score: 900, meta: 'method', docText: 'Gets all descendants' },
-                    { value: ':IsA(className)', score: 900, meta: 'method', docText: 'Checks if instance is of given class' },
-
-                    // Roblox Properties
-                    { value: '.Name', score: 900, meta: 'property', docText: 'Name of the instance' },
-                    { value: '.Parent', score: 900, meta: 'property', docText: 'Parent of the instance' },
-                    { value: '.Position', score: 900, meta: 'property', docText: 'Position in 3D space' },
-                    { value: '.Size', score: 900, meta: 'property', docText: 'Size of the instance' },
-                    { value: '.CFrame', score: 900, meta: 'property', docText: 'Position and orientation' },
-                    { value: '.Transparency', score: 900, meta: 'property', docText: 'Transparency value' },
-                    { value: '.Enabled', score: 900, meta: 'property', docText: 'Enabled state' },
-                    { value: '.Visible', score: 900, meta: 'property', docText: 'Visibility state' },
-
-                    // Roblox Constructors
-                    { value: 'Instance.new("Part")', score: 800, meta: 'constructor', docText: 'Creates a new Part instance' },
-                    { value: 'Vector3.new()', score: 800, meta: 'constructor', docText: 'Creates a new Vector3' },
-                    { value: 'CFrame.new()', score: 800, meta: 'constructor', docText: 'Creates a new CFrame' },
-                    { value: 'Color3.fromRGB()', score: 800, meta: 'constructor', docText: 'Creates a new Color3 from RGB values' },
-                    { value: 'UDim2.new()', score: 800, meta: 'constructor', docText: 'Creates a new UDim2' },
-
-                    // Roblox Events
-                    { value: '.Changed', score: 800, meta: 'event', docText: 'Fires when a property changes' },
-                    { value: '.Touched', score: 800, meta: 'event', docText: 'Fires when object is touched' },
-                    { value: '.TouchEnded', score: 800, meta: 'event', docText: 'Fires when touch ends' },
-                    { value: '.Activated', score: 800, meta: 'event', docText: 'Fires when activated' },
-
-                    // Lua Standard Library Functions
-                    { value: 'print()', score: 900, meta: 'function', docText: 'Prints to output' },
-                    { value: 'warn()', score: 900, meta: 'function', docText: 'Prints warning to output' },
-                    { value: 'error()', score: 900, meta: 'function', docText: 'Raises an error' },
-                    { value: 'assert()', score: 900, meta: 'function', docText: 'Asserts a condition' },
-                    { value: 'type()', score: 900, meta: 'function', docText: 'Gets type of value' },
-                    { value: 'pairs()', score: 900, meta: 'function', docText: 'Iterates over table' },
-                    { value: 'ipairs()', score: 900, meta: 'function', docText: 'Iterates over array part of table' },
-                    { value: 'next()', score: 900, meta: 'function', docText: 'Gets next key in table' },
-                    { value: 'select()', score: 900, meta: 'function', docText: 'Selects arguments' },
-                    { value: 'tonumber()', score: 900, meta: 'function', docText: 'Converts to number' },
-                    { value: 'tostring()', score: 900, meta: 'function', docText: 'Converts to string' },
-
-                    // Math Library
-                    { value: 'math.abs()', score: 800, meta: 'math', docText: 'Absolute value' },
-                    { value: 'math.ceil()', score: 800, meta: 'math', docText: 'Ceiling value' },
-                    { value: 'math.floor()', score: 800, meta: 'math', docText: 'Floor value' },
-                    { value: 'math.max()', score: 800, meta: 'math', docText: 'Maximum value' },
-                    { value: 'math.min()', score: 800, meta: 'math', docText: 'Minimum value' },
-                    { value: 'math.random()', score: 800, meta: 'math', docText: 'Random number' },
-                    { value: 'math.randomseed()', score: 800, meta: 'math', docText: 'Sets random seed' },
-                    { value: 'math.pi', score: 800, meta: 'math', docText: 'Pi constant' },
-
-                    // String Library
-                    { value: 'string.len()', score: 800, meta: 'string', docText: 'String length' },
-                    { value: 'string.sub()', score: 800, meta: 'string', docText: 'Substring' },
-                    { value: 'string.upper()', score: 800, meta: 'string', docText: 'Uppercase string' },
-                    { value: 'string.lower()', score: 800, meta: 'string', docText: 'Lowercase string' },
-                    { value: 'string.find()', score: 800, meta: 'string', docText: 'Find substring' },
-                    { value: 'string.match()', score: 800, meta: 'string', docText: 'Match pattern' },
-                    { value: 'string.gsub()', score: 800, meta: 'string', docText: 'Global substitute' },
-
-                    // Table Library
-                    { value: 'table.insert()', score: 800, meta: 'table', docText: 'Insert into table' },
-                    { value: 'table.remove()', score: 800, meta: 'table', docText: 'Remove from table' },
-                    { value: 'table.concat()', score: 800, meta: 'table', docText: 'Concatenate table' },
-                    { value: 'table.sort()', score: 800, meta: 'table', docText: 'Sort table' },
-                    { value: 'table.unpack()', score: 800, meta: 'table', docText: 'Unpack table' }
+                    // Lua Keywords with snippets
+                    { caption: 'function', value: 'function', snippet: 'function ${1:name}(${2:params})\n\t${3}\nend', score: 1000, meta: 'keyword', ghostText: ' name()' },
+                    { caption: 'if', value: 'if', snippet: 'if ${1:condition} then\n\t${2}\nend', score: 1000, meta: 'keyword', ghostText: ' condition then' },
+                    { caption: 'for', value: 'for', snippet: 'for ${1:i}=${2:1},${3:10} do\n\t${4}\nend', score: 1000, meta: 'keyword', ghostText: ' i=1,10 do' },
+                    { caption: 'while', value: 'while', snippet: 'while ${1:condition} do\n\t${2}\nend', score: 1000, meta: 'keyword', ghostText: ' condition do' },
+                    
+                    // Functions with brackets
+                    { caption: 'print()', value: 'print', snippet: 'print(${1})', score: 900, meta: 'function', ghostText: '()' },
+                    { caption: 'type()', value: 'type', snippet: 'type(${1})', score: 900, meta: 'function', ghostText: '()' },
+                    { caption: 'tostring()', value: 'tostring', snippet: 'tostring(${1})', score: 900, meta: 'function', ghostText: '()' },
+                    { caption: 'tonumber()', value: 'tonumber', snippet: 'tonumber(${1})', score: 900, meta: 'function', ghostText: '()' },
+                    
+                    // Math functions
+                    { caption: 'math.abs()', value: 'math.abs', snippet: 'math.abs(${1})', score: 800, meta: 'math', ghostText: '()' },
+                    { caption: 'math.floor()', value: 'math.floor', snippet: 'math.floor(${1})', score: 800, meta: 'math', ghostText: '()' },
+                    { caption: 'math.ceil()', value: 'math.ceil', snippet: 'math.ceil(${1})', score: 800, meta: 'math', ghostText: '()' },
+                    
+                    // Table functions
+                    { caption: 'table.insert()', value: 'table.insert', snippet: 'table.insert(${1:table}, ${2:value})', score: 800, meta: 'table', ghostText: '()' },
+                    { caption: 'table.remove()', value: 'table.remove', snippet: 'table.remove(${1:table}, ${2:pos})', score: 800, meta: 'table', ghostText: '()' },
+                    
+                    // String functions
+                    { caption: 'string.format()', value: 'string.format', snippet: 'string.format(${1:format}, ${2})', score: 800, meta: 'string', ghostText: '()' },
+                    { caption: 'string.sub()', value: 'string.sub', snippet: 'string.sub(${1:str}, ${2:start}, ${3:end})', score: 800, meta: 'string', ghostText: '()' }
                 ];
+            },
+            
+            getCompletions: function(editor, session, pos, prefix, callback) {
+                let completions = this.getStandardCompletions();
+                
+                // Filter completions based on prefix
+                if (prefix) {
+                    completions = completions.filter(completion => 
+                        completion.caption.toLowerCase().startsWith(prefix.toLowerCase())
+                    );
+                }
+                
+                // Show ghost text for the selected completion
+                editor.on('changeSelection', function() {
+                    const pos = editor.getCursorPosition();
+                    const token = editor.session.getTokenAt(pos.row, pos.column);
+                    
+                    if (token) {
+                        const completion = completions.find(c => c.value === token.value);
+                        if (completion && completion.ghostText) {
+                            editor.renderer.setGhostText(pos, completion.ghostText, 0.4);
+                        } else {
+                            editor.renderer.clearGhostText();
+                        }
+                    }
+                });
+                
+                callback(null, completions);
             }
         };
 
@@ -1022,6 +973,127 @@
         // Update the editor's container style
         editor.container.style.height = '100%';
         editor.container.style.position = 'absolute';
+
+        // Custom bracket completion with ghost text
+        editor.commands.on('afterExec', function(e) {
+            const pos = editor.getCursorPosition();
+            const line = editor.session.getLine(pos.row);
+            const token = editor.session.getTokenAt(pos.row, pos.column);
+            
+            if (token && token.type === 'identifier') {
+                const word = token.value;
+                const completions = {
+                    'print': '()',
+                    'function': ' ()',
+                    'table.insert': '()',
+                    'table.remove': '()',
+                    'string.format': '()',
+                    // Add more function names and their bracket pairs
+                };
+
+                if (completions[word]) {
+                    // Show ghost text
+                    const ghostText = completions[word];
+                    editor.renderer.setGhostText(pos, ghostText, 0.4);
+                    
+                    // Handle tab completion
+                    editor.commands.addCommand({
+                        name: 'acceptGhostText',
+                        bindKey: {win: 'Tab', mac: 'Tab'},
+                        exec: function(editor) {
+                            if (editor.renderer.ghostText) {
+                                editor.insert(ghostText);
+                                editor.renderer.clearGhostText();
+                                return true;
+                            }
+                            return false;
+                        }
+                    });
+                }
+            }
+        });
+
+        // Add ghost text renderer
+        ace.define('ace/ghost_text', [], function(require, exports, module) {
+            'use strict';
+            
+            const dom = require('ace/lib/dom');
+            
+            class GhostTextRenderer {
+                constructor(editor) {
+                    this.editor = editor;
+                    this.ghostText = null;
+                    this.ghostMarker = null;
+                    this.opacity = 0.4;
+                    
+                    this.element = dom.createElement('div');
+                    this.element.className = 'ace_ghost_text';
+                    this.element.style.position = 'absolute';
+                    this.element.style.pointerEvents = 'none';
+                    this.editor.renderer.scroller.appendChild(this.element);
+                }
+                
+                setGhostText(position, text, opacity) {
+                    this.ghostText = text;
+                    this.opacity = opacity || 0.4;
+                    this.position = position;
+                    this.update();
+                }
+                
+                clearGhostText() {
+                    this.ghostText = null;
+                    this.element.textContent = '';
+                }
+                
+                update() {
+                    if (!this.ghostText) return;
+                    
+                    const pos = this.editor.renderer.textToScreenCoordinates(
+                        this.position.row,
+                        this.position.column
+                    );
+                    
+                    this.element.style.left = pos.pageX + 'px';
+                    this.element.style.top = pos.pageY + 'px';
+                    this.element.textContent = this.ghostText;
+                    this.element.style.opacity = this.opacity;
+                    this.element.style.color = 'inherit';
+                }
+            }
+            
+            exports.GhostTextRenderer = GhostTextRenderer;
+        });
+
+        // Initialize ghost text renderer
+        const GhostTextRenderer = ace.require('ace/ghost_text').GhostTextRenderer;
+        editor.renderer.ghostTextRenderer = new GhostTextRenderer(editor);
+        editor.renderer.setGhostText = function(pos, text, opacity) {
+            this.ghostTextRenderer.setGhostText(pos, text, opacity);
+        };
+        editor.renderer.clearGhostText = function() {
+            this.ghostTextRenderer.clearGhostText();
+        };
+
+        // Add ghost text styles
+        const ghostTextStyles = `
+            .ace_ghost_text {
+                font-family: inherit;
+                font-size: inherit;
+                color: #6272a4 !important;
+                pointer-events: none;
+                z-index: 5;
+                text-shadow: 0 0 2px rgba(98, 114, 164, 0.4);
+            }
+        `;
+        style.textContent += ghostTextStyles;
+
+        // Add this event listener to handle ghost text on autocomplete selection
+        editor.on('autocompletionSelect', function(e, completion) {
+            if (completion && completion.ghostText) {
+                const pos = editor.getCursorPosition();
+                editor.renderer.setGhostText(pos, completion.ghostText, 0.4);
+            }
+        });
     </script>
 </body>
 

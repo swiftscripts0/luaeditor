@@ -4,52 +4,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
+
     <!-- Primary Meta Tags -->
     <title>Lua Editor - Online Lua Code Editor</title>
     <meta name="title" content="Lua Editor - Online Lua Code Editor">
-    <meta name="description" content="Professional online Lua code editor with syntax highlighting, autocompletion, and real-time execution capabilities.">
+    <meta name="description" content="Professional online Lua code editor with syntax highlighting and autocompletion.">
     <meta name="keywords" content="lua, code editor, programming, development, online editor, lua editor">
     <meta name="author" content="Your Name">
     <meta name="theme-color" content="#0a0b11">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://your-domain.com">
-    <meta property="og:title" content="Lua Editor - Online Lua Code Editor">
-    <meta property="og:description" content="Professional online Lua code editor with syntax highlighting, autocompletion, and real-time execution capabilities.">
-    <meta property="og:image" content="https://your-domain.com/images/og-image.png">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://your-domain.com">
-    <meta property="twitter:title" content="Lua Editor - Online Lua Code Editor">
-    <meta property="twitter:description" content="Professional online Lua code editor with syntax highlighting, autocompletion, and real-time execution capabilities.">
-    <meta property="twitter:image" content="https://your-domain.com/images/twitter-image.png">
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="/logos/lua-icon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/logos/lua-icon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/logos/lua-icon-180x180.png">
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
-    
+
     <!-- External Resources -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
-    
+
     <!-- Security -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval';">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    
+
     <!-- PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="application-name" content="Lua Editor">
     <meta name="mobile-web-app-capable" content="yes">
-    
+
     <style>
         body {
             margin: 0;
@@ -85,6 +71,8 @@
             opacity: 0;
             animation: fadeInEditor 0.3s ease-out forwards;
             position: relative;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
         }
 
         #editor::after {
@@ -95,7 +83,7 @@
             right: 0;
             bottom: 0;
             pointer-events: none;
-            box-shadow: 
+            box-shadow:
                 inset 0 0 30px rgba(88, 101, 242, 0.1),
                 0 0 20px rgba(136, 192, 255, 0.1);
             z-index: 2;
@@ -106,13 +94,14 @@
                 opacity: 0;
                 transform: translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        /* Custom scrollbar with neon effect */
+        
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -135,12 +124,12 @@
             box-shadow: 0 0 10px rgba(41, 98, 255, 0.3);
         }
 
-        /* Selection style */
+        
         ::selection {
             background: rgba(41, 98, 255, 0.2);
         }
 
-        /* Add this to your existing styles */
+        
         .monaco-editor .suggest-widget {
             border: 1px solid rgba(136, 192, 255, 0.2) !important;
             box-shadow: 0 0 20px rgba(88, 101, 242, 0.2) !important;
@@ -155,26 +144,39 @@
             background-color: rgba(88, 101, 242, 0.3) !important;
         }
 
-        /* Neon text effect for editor content */
+        
         .monaco-editor .view-line span {
             text-shadow: 0 0 2px rgba(248, 248, 242, 0.4);
         }
 
-        /* Enhanced neon effect for specific syntax elements */
-        .monaco-editor .mtk9 {  /* keywords */
+        
+        .monaco-editor .mtk9 {
+            /* keywords */
             text-shadow: 0 0 8px rgba(255, 121, 198, 0.5);
         }
 
-        .monaco-editor .mtk20 {  /* strings */
+        .monaco-editor .mtk20 {
+            /* strings */
             text-shadow: 0 0 8px rgba(80, 250, 123, 0.5);
         }
 
-        .monaco-editor .mtk6 {  /* numbers */
+        .monaco-editor .mtk6 {
+            /* numbers */
             text-shadow: 0 0 8px rgba(255, 184, 108, 0.5);
         }
 
-        .monaco-editor .mtk22 {  /* functions */
+        .monaco-editor .mtk22 {
+            /* functions */
             text-shadow: 0 0 8px rgba(102, 217, 239, 0.5);
+        }
+
+        .monaco-editor .monaco-scrollable-element {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .monaco-scrollable-element > .scrollbar > .slider {
+            transition: all 0.1s ease-out;
         }
     </style>
 </head>
@@ -184,17 +186,16 @@
         <div id="editor"></div>
     </div>
     <script>
-        // Wait for the loader to be ready
+        // Initialize Monaco Editor
         window.onload = () => {
-            require.config({ 
-                paths: { 
+            require.config({
+                paths: {
                     'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs'
                 }
             });
-            
-            // Before loading Monaco, set the worker paths
+
             window.MonacoEnvironment = {
-                getWorkerUrl: function(workerId, label) {
+                getWorkerUrl: function (workerId, label) {
                     return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
                         self.MonacoEnvironment = {
                             baseUrl: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/'
@@ -202,12 +203,12 @@
                     `)}`;
                 }
             };
-            
-            require(['vs/editor/editor.main'], function() {
-                // Define custom Lua language
+
+            require(['vs/editor/editor.main'], function () {
+                // Register Lua language
                 monaco.languages.register({ id: 'lua' });
 
-                // Define Lua syntax highlighting
+                // Define Lua syntax highlighting rules
                 monaco.languages.setMonarchTokensProvider('lua', {
                     defaultToken: '',
                     tokenPostfix: '.lua',
@@ -332,9 +333,16 @@
                     }
                 });
 
-                // Create Monaco Editor instance
+                // Initialize Monaco Editor instance
                 const editor = monaco.editor.create(document.getElementById('editor'), {
-                    value: 'print("Hello, World!")',
+                    value: [
+                        '--[[',
+                        '    Neon Lua Editor',
+                        '    Made with 💜 by Swift',
+                        ']]',
+                        '',
+                        'print("Hello, World!")'
+                    ].join('\n'),
                     language: 'lua',
                     theme: 'neon-dark',
                     fontSize: 14,
@@ -373,10 +381,15 @@
                         showIcons: true,
                         showStatusBar: true,
                         preview: true
-                    }
+                    },
+                    mouseWheelScrollSensitivity: 0.5,
+                    fastScrollSensitivity: 5,
+                    scrollBeyondLastLine: false,
+                    cursorSurroundingLines: 3,
+                    cursorSmoothCaretAnimation: true
                 });
 
-                // Add custom theme
+                // Define custom theme
                 monaco.editor.defineTheme('neon-dark', {
                     base: 'vs-dark',
                     inherit: true,
@@ -398,7 +411,8 @@
                         'editor.lineHighlightBorder': '#1a1b2600',
                         'editor.selectionBackground': '#44475a',
                         'editor.inactiveSelectionBackground': '#1f2233',
-                        'editorCursor.foreground': '#f8f8f2',
+                        'editorCursor.foreground': '#bd93f9',
+                        'editorCursor.background': '#282a36',
                         'editorWhitespace.foreground': '#3b3b4d',
                         'editorLineNumber.foreground': '#6272a4',
                         'editorLineNumber.activeForeground': '#ff79c6',
@@ -425,10 +439,9 @@
                     }
                 });
 
-                // Set the custom theme
                 monaco.editor.setTheme('neon-dark');
 
-                // Add Lua-specific completions
+                // Register Lua completion provider
                 monaco.languages.registerCompletionItemProvider('lua', {
                     provideCompletionItems: (model, position) => {
                         const wordUntilPosition = model.getWordUntilPosition(position);
@@ -523,8 +536,8 @@
                             // Add defined variables to suggestions
                             ...[...definedVariables].map(variable => ({
                                 label: variable.name,
-                                kind: variable.kind === 'function' 
-                                    ? monaco.languages.CompletionItemKind.Function 
+                                kind: variable.kind === 'function'
+                                    ? monaco.languages.CompletionItemKind.Function
                                     : monaco.languages.CompletionItemKind.Variable,
                                 insertText: variable.name,
                                 range: range,
@@ -537,7 +550,7 @@
                     triggerCharacters: ['.', ':', '_']
                 });
 
-                // Add variable tracking
+                // Variable tracking system
                 let definedVariables = new Set();
                 let variableDeclarationRegex = /\blocal\s+([a-zA-Z_][a-zA-Z0-9_]*)/g;
                 let functionDeclarationRegex = /\bfunction\s+([a-zA-Z_][a-zA-Z0-9_]*)/g;
@@ -546,10 +559,10 @@
                 editor.onDidChangeModelContent((e) => {
                     const model = editor.getModel();
                     const content = model.getValue();
-                    
+
                     // Clear previous variables
                     definedVariables.clear();
-                    
+
                     // Find all variable declarations
                     let match;
                     while ((match = variableDeclarationRegex.exec(content)) !== null) {
@@ -559,7 +572,7 @@
                             location: model.getPositionAt(match.index)
                         });
                     }
-                    
+
                     // Find all function declarations
                     while ((match = functionDeclarationRegex.exec(content)) !== null) {
                         definedVariables.add({
@@ -568,7 +581,7 @@
                             location: model.getPositionAt(match.index)
                         });
                     }
-                    
+
                     // Find all local function declarations
                     while ((match = localFunctionRegex.exec(content)) !== null) {
                         definedVariables.add({
@@ -597,11 +610,11 @@
                     }
                 });
 
-                // Add support for multiple variable declarations
+                // Update variable tracking on content change
                 const updateVariableTracking = (content) => {
                     const multipleDeclarationRegex = /\blocal\s+([^=]+)=/g;
                     let match;
-                    
+
                     while ((match = multipleDeclarationRegex.exec(content)) !== null) {
                         const variables = match[1].split(',').map(v => v.trim());
                         variables.forEach(varName => {
@@ -616,7 +629,6 @@
                     }
                 };
 
-                // Update the onDidChangeModelContent event
                 editor.onDidChangeModelContent((e) => {
                     const model = editor.getModel();
                     const content = model.getValue();
@@ -624,7 +636,7 @@
                     updateVariableTracking(content);
                 });
 
-                // Add semantic token provider for better highlighting of defined variables
+                // Register semantic token provider
                 monaco.languages.registerDocumentSemanticTokensProvider('lua', {
                     getLegend: () => ({
                         tokenTypes: ['variable', 'function'],
@@ -633,7 +645,7 @@
                     provideDocumentSemanticTokens: (model) => {
                         const tokens = [];
                         const content = model.getValue();
-                        
+
                         // Add tokens for all defined variables
                         definedVariables.forEach(variable => {
                             const regex = new RegExp(`\\b${variable.name}\\b`, 'g');
@@ -665,12 +677,6 @@
                     editor.layout();
                 });
 
-                // Add custom keybindings
-                editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
-                    console.log('Executing:', editor.getValue());
-                });
-
-                // Expose editor instance globally for debugging
                 window.editor = editor;
             });
         };

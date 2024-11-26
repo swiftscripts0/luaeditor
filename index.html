@@ -26,10 +26,6 @@
     <!-- External Resources -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
 
-    <!-- Security -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval';">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
     <!-- PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -372,7 +368,7 @@
                     padding: { top: 12 },
                     lineHeight: 1.6,
                     roundedSelection: true,
-                    glyphMargin: false,
+                    glyphMargin: true,
                     renderLineHighlight: 'all',
                     contextmenu: true,
                     mouseWheelZoom: true,
@@ -388,58 +384,6 @@
                     cursorSurroundingLines: 3,
                     cursorSmoothCaretAnimation: true
                 });
-
-                // Define custom theme
-                monaco.editor.defineTheme('neon-dark', {
-                    base: 'vs-dark',
-                    inherit: true,
-                    rules: [
-                        { token: 'comment', foreground: '6272a4', fontStyle: 'italic' },
-                        { token: 'keyword', foreground: 'ff79c6', fontStyle: 'bold' },  // Bright pink
-                        { token: 'string', foreground: '50fa7b' },   // Neon green
-                        { token: 'number', foreground: 'ffb86c' },   // Bright orange
-                        { token: 'operator', foreground: '8be9fd' }, // Cyan
-                        { token: 'type.identifier', foreground: 'bd93f9' }, // Purple
-                        { token: 'function', foreground: '66d9ef', fontStyle: 'bold' }, // Blue
-                        { token: 'variable', foreground: 'f8f8f2' }, // Bright white
-                        { token: 'constant', foreground: 'bd93f9' }  // Purple
-                    ],
-                    colors: {
-                        'editor.background': '#0a0b11',
-                        'editor.foreground': '#f8f8f2',
-                        'editor.lineHighlightBackground': '#1a1b2644',
-                        'editor.lineHighlightBorder': '#1a1b2600',
-                        'editor.selectionBackground': '#44475a',
-                        'editor.inactiveSelectionBackground': '#1f2233',
-                        'editorCursor.foreground': '#bd93f9',
-                        'editorCursor.background': '#282a36',
-                        'editorWhitespace.foreground': '#3b3b4d',
-                        'editorLineNumber.foreground': '#6272a4',
-                        'editorLineNumber.activeForeground': '#ff79c6',
-                        'editor.selectionHighlightBackground': '#44475a77',
-                        'editor.wordHighlightBackground': '#44475a77',
-                        'editor.wordHighlightStrongBackground': '#44475a77',
-                        'editorBracketMatch.background': '#44475a77',
-                        'editorBracketMatch.border': '#8be9fd',
-                        'editorGutter.background': '#0a0b11',
-                        'editorWidget.background': '#1a1b26',
-                        'editorSuggestWidget.background': '#12131a',
-                        'editorSuggestWidget.border': '#2d3144',
-                        'editorSuggestWidget.selectedBackground': 'rgba(88, 101, 242, 0.2)',
-                        'editorSuggestWidget.highlightForeground': '#50fa7b',
-                        'editorSuggestWidget.focusHighlightForeground': '#8be9fd',
-                        'editorHoverWidget.background': '#12131a',
-                        'editorHoverWidget.border': '#2d3144',
-                        'editorIndentGuide.background': '#1a1b26',
-                        'editorIndentGuide.activeBackground': '#2d3144',
-                        'list.hoverBackground': 'rgba(88, 101, 242, 0.1)',
-                        'list.focusBackground': 'rgba(88, 101, 242, 0.2)',
-                        'list.activeSelectionBackground': 'rgba(88, 101, 242, 0.3)',
-                        'list.highlightForeground': '#50fa7b'
-                    }
-                });
-
-                monaco.editor.setTheme('neon-dark');
 
                 // Register Lua completion provider
                 monaco.languages.registerCompletionItemProvider('lua', {
@@ -533,16 +477,27 @@
                                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                                 documentation: 'Gets a Roblox service by name'
                             },
-                            // Add defined variables to suggestions
-                            ...[...definedVariables].map(variable => ({
-                                label: variable.name,
-                                kind: variable.kind === 'function'
-                                    ? monaco.languages.CompletionItemKind.Function
-                                    : monaco.languages.CompletionItemKind.Variable,
-                                insertText: variable.name,
-                                range: range,
-                                documentation: `${variable.kind === 'function' ? 'Function' : 'Variable'} defined at line ${variable.location.lineNumber}`
-                            }))
+                            {
+                                label: 'loadstring',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'loadstring(game:HttpGet(\'${1:url}\'))()',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Loads and executes code from a URL using HttpGet'
+                            },
+                            {
+                                label: 'HttpGet',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'game:HttpGet("${1:url}")',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Sends an HTTP GET request and returns the response'
+                            },
+                            {
+                                label: 'HttpPost',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'game:HttpPost("${1:url}", ${2:data})',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                                documentation: 'Sends an HTTP POST request with data'
+                            }
                         ];
 
                         return { suggestions };
@@ -610,67 +565,57 @@
                     }
                 });
 
-                // Update variable tracking on content change
-                const updateVariableTracking = (content) => {
-                    const multipleDeclarationRegex = /\blocal\s+([^=]+)=/g;
-                    let match;
-
-                    while ((match = multipleDeclarationRegex.exec(content)) !== null) {
-                        const variables = match[1].split(',').map(v => v.trim());
-                        variables.forEach(varName => {
-                            if (varName.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) {
-                                definedVariables.add({
-                                    name: varName,
-                                    kind: 'variable',
-                                    location: editor.getModel().getPositionAt(match.index)
-                                });
-                            }
-                        });
-                    }
-                };
-
-                editor.onDidChangeModelContent((e) => {
-                    const model = editor.getModel();
-                    const content = model.getValue();
-                    definedVariables.clear();
-                    updateVariableTracking(content);
-                });
-
-                // Register semantic token provider
-                monaco.languages.registerDocumentSemanticTokensProvider('lua', {
-                    getLegend: () => ({
-                        tokenTypes: ['variable', 'function'],
-                        tokenModifiers: ['declaration', 'usage']
-                    }),
-                    provideDocumentSemanticTokens: (model) => {
-                        const tokens = [];
-                        const content = model.getValue();
-
-                        // Add tokens for all defined variables
-                        definedVariables.forEach(variable => {
-                            const regex = new RegExp(`\\b${variable.name}\\b`, 'g');
-                            let match;
-                            while ((match = regex.exec(content)) !== null) {
-                                const pos = model.getPositionAt(match.index);
-                                tokens.push({
-                                    line: pos.lineNumber - 1,
-                                    character: pos.column - 1,
-                                    length: variable.name.length,
-                                    tokenType: variable.kind === 'function' ? 'function' : 'variable',
-                                    tokenModifiers: []
-                                });
-                            }
-                        });
-
-                        return {
-                            data: new Uint32Array(tokens.flatMap(t => [
-                                t.line, t.character, t.length,
-                                t.tokenType === 'function' ? 0 : 1,
-                                0
-                            ]))
-                        };
+                // Define custom theme
+                monaco.editor.defineTheme('neon-dark', {
+                    base: 'vs-dark',
+                    inherit: true,
+                    rules: [
+                        { token: 'comment', foreground: '6272a4', fontStyle: 'italic' },
+                        { token: 'keyword', foreground: 'ff79c6', fontStyle: 'bold' },  // Bright pink
+                        { token: 'string', foreground: '50fa7b' },   // Neon green
+                        { token: 'number', foreground: 'ffb86c' },   // Bright orange
+                        { token: 'operator', foreground: '8be9fd' }, // Cyan
+                        { token: 'type.identifier', foreground: 'bd93f9' }, // Purple
+                        { token: 'function', foreground: '66d9ef', fontStyle: 'bold' }, // Blue
+                        { token: 'variable', foreground: 'f8f8f2' }, // Bright white
+                        { token: 'constant', foreground: 'bd93f9' }  // Purple
+                    ],
+                    colors: {
+                        'editor.background': '#0a0b11',
+                        'editor.foreground': '#f8f8f2',
+                        'editor.lineHighlightBackground': '#1a1b2644',
+                        'editor.lineHighlightBorder': '#1a1b2600',
+                        'editor.selectionBackground': '#44475a',
+                        'editor.inactiveSelectionBackground': '#1f2233',
+                        'editorCursor.foreground': '#bd93f9',
+                        'editorCursor.background': '#282a36',
+                        'editorWhitespace.foreground': '#3b3b4d',
+                        'editorLineNumber.foreground': '#6272a4',
+                        'editorLineNumber.activeForeground': '#ff79c6',
+                        'editor.selectionHighlightBackground': '#44475a77',
+                        'editor.wordHighlightBackground': '#44475a77',
+                        'editor.wordHighlightStrongBackground': '#44475a77',
+                        'editorBracketMatch.background': '#44475a77',
+                        'editorBracketMatch.border': '#8be9fd',
+                        'editorGutter.background': '#0a0b11',
+                        'editorWidget.background': '#1a1b26',
+                        'editorSuggestWidget.background': '#12131a',
+                        'editorSuggestWidget.border': '#2d3144',
+                        'editorSuggestWidget.selectedBackground': 'rgba(88, 101, 242, 0.2)',
+                        'editorSuggestWidget.highlightForeground': '#50fa7b',
+                        'editorSuggestWidget.focusHighlightForeground': '#8be9fd',
+                        'editorHoverWidget.background': '#12131a',
+                        'editorHoverWidget.border': '#2d3144',
+                        'editorIndentGuide.background': '#1a1b26',
+                        'editorIndentGuide.activeBackground': '#2d3144',
+                        'list.hoverBackground': 'rgba(88, 101, 242, 0.1)',
+                        'list.focusBackground': 'rgba(88, 101, 242, 0.2)',
+                        'list.activeSelectionBackground': 'rgba(88, 101, 242, 0.3)',
+                        'list.highlightForeground': '#50fa7b'
                     }
                 });
+
+                monaco.editor.setTheme('neon-dark');
 
                 // Handle window resize
                 window.addEventListener('resize', () => {

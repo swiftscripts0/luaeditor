@@ -25,6 +25,7 @@
 
     <!-- External Resources -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luaparse/0.3.1/luaparse.min.js"></script>
 
     <!-- PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -42,11 +43,12 @@
         }
 
         #container {
-            width: 106.3vw;
+            width: 100vw;
             height: 100vh;
             display: flex;
             box-shadow: 0 0 30px rgba(88, 101, 242, 0.2);
             position: relative;
+            overflow: hidden;
         }
 
         #container::before {
@@ -62,7 +64,7 @@
         }
 
         #editor {
-            width: calc(100% - 120px);
+            width: 100%;
             height: 100%;
             opacity: 0;
             animation: fadeInEditor 0.3s ease-out forwards;
@@ -174,6 +176,77 @@
         .monaco-scrollable-element > .scrollbar > .slider {
             transition: all 0.1s ease-out;
         }
+
+        .errorLine {
+            text-decoration: wavy underline rgba(255, 71, 87, 0.6);
+            text-decoration-skip-ink: none;
+        }
+        
+        .errorGlyph {
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23ff4757' d='M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 11a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0-3a1 1 0 0 1-1-1V5a1 1 0 0 1 2 0v3a1 1 0 0 1-1 1z'/%3E%3C/svg%3E") center center no-repeat;
+            margin-left: 5px;
+            opacity: 0.7;
+        }
+
+        /* Hover message styling */
+        .monaco-editor .monaco-hover {
+            background-color: #1a1b26 !important;
+            border: 1px solid rgba(255, 71, 87, 0.2) !important;
+            border-radius: 4px !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        .monaco-editor .monaco-hover .hover-row:not(:first-child):not(:empty) {
+            border-top: 1px solid rgba(255, 71, 87, 0.1) !important;
+        }
+
+        @media screen and (max-width: 768px) {
+            #container {
+                width: 100%;
+                height: 100%;
+            }
+            
+            #editor {
+                font-size: 12px; /* Smaller font for mobile */
+            }
+            
+            .monaco-editor .suggest-widget {
+                max-width: 90vw !important;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            #editor {
+                font-size: 11px; /* Even smaller font for very small devices */
+            }
+            
+            ::-webkit-scrollbar {
+                width: 4px;
+                height: 4px;
+            }
+        }
+
+        /* Add touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            #container::before {
+                display: none; /* Remove shadow effect on mobile */
+            }
+            
+            .monaco-editor .monaco-scrollable-element {
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .monaco-editor .suggest-widget {
+                touch-action: manipulation;
+            }
+        }
+
+        /* Handle orientation changes */
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            #container {
+                height: 100vh;
+            }
+        }
     </style>
 </head>
 
@@ -244,9 +317,10 @@
                     ],
 
                     brackets: [
-                        { token: 'delimiter.bracket', open: '{', close: '}' },
-                        { token: 'delimiter.array', open: '[', close: ']' },
-                        { token: 'delimiter.parenthesis', open: '(', close: ')' }
+                        { open: '{', close: '}', token: 'delimiter.curly' },
+                        { open: '[', close: ']', token: 'delimiter.square' },
+                        { open: '(', close: ')', token: 'delimiter.parenthesis' },
+                        { open: '<', close: '>', token: 'delimiter.angle' }
                     ],
 
                     operators: [
@@ -268,7 +342,7 @@
                                 }
                             }],
                             { include: '@whitespace' },
-                            [/[{}()\[\]]/, '@brackets'],
+                            [/[{}()\[\]<>]/, '@brackets'],
                             [/[<>](?!@symbols)/, '@brackets'],
                             [/@symbols/, {
                                 cases: {
@@ -382,7 +456,16 @@
                     fastScrollSensitivity: 5,
                     scrollBeyondLastLine: false,
                     cursorSurroundingLines: 3,
-                    cursorSmoothCaretAnimation: true
+                    cursorSmoothCaretAnimation: true,
+                    glyphMargin: true,
+                    renderValidationDecorations: 'on',
+                    minimap: {
+                        enabled: true,
+                        showSlider: 'always',
+                        renderCharacters: false,
+                        maxColumn: 120,
+                        scale: 1
+                    }
                 });
 
                 // Add drag and drop support
@@ -411,6 +494,9 @@
                         reader.onload = (event) => {
                             const content = event.target.result;
                             editor.setValue(content);
+                            
+                            // Trigger syntax check after setting value
+                            luaWorker.postMessage(content);
 
                             // Attempt to detect and set the language mode
                             const fileName = file.name.toLowerCase();
@@ -670,6 +756,391 @@
                 });
 
                 window.editor = editor;
+
+                // Create a worker for Lua syntax checking
+                const createLuaWorker = () => {
+                    const workerCode = `
+                        function checkLuaSyntax(code) {
+                            try {
+                                let errors = [];
+                                let lines = code.split('\\n');
+                                let bracketStack = [];
+                                let functionStack = [];
+                                let inMultiLineComment = false;
+                                let multiLineCommentStart = 0;
+                                let multiLineCommentLevel = 0;
+                                
+                                for (let i = 0; i < lines.length; i++) {
+                                    let line = lines[i];
+                                    let currentLine = i + 1;
+                                    let trimmedLine = line.trim();
+                                    
+                                    // Check for multi-line comment start
+                                    let commentStartIndex = line.indexOf('--[[');
+                                    if (commentStartIndex !== -1) {
+                                        if (!inMultiLineComment) {
+                                            inMultiLineComment = true;
+                                            multiLineCommentStart = currentLine;
+                                        }
+                                        multiLineCommentLevel++;
+                                    }
+                                    
+                                    // Check for multi-line comment end
+                                    if (inMultiLineComment && line.includes(']]')) {
+                                        multiLineCommentLevel--;
+                                        if (multiLineCommentLevel === 0) {
+                                            inMultiLineComment = false;
+                                        }
+                                    }
+                                    
+                                    // Skip processing if in multi-line comment
+                                    if (inMultiLineComment) {
+                                        continue;
+                                    }
+                                    
+                                    // Check for invalid comment syntax (single dash)
+                                    if (trimmedLine.startsWith('-') && !trimmedLine.startsWith('--')) {
+                                        errors.push({
+                                            lineNumber: currentLine,
+                                            column: 1,
+                                            message: 'Invalid comment syntax. Comments must start with "--"'
+                                        });
+                                    }
+                                    
+                                    // Skip single-line comments
+                                    if (trimmedLine.startsWith('--')) {
+                                        continue;
+                                    }
+                                    
+                                    // Check for invalid variable names in local declarations
+                                    if (trimmedLine.startsWith('local ')) {
+                                        let afterLocal = trimmedLine.substring(5).trim();
+                                        let equalIndex = afterLocal.indexOf('=');
+                                        let varList = equalIndex >= 0 ? afterLocal.substring(0, equalIndex) : afterLocal;
+                                        let varNames = varList.split(',');
+                                        
+                                        for (let varName of varNames) {
+                                            varName = varName.trim();
+                                            if (varName.match(/^[0-9]/)) {  // Check if starts with number
+                                                errors.push({
+                                                    lineNumber: currentLine,
+                                                    column: line.indexOf(varName) + 1,
+                                                    message: 'Variable names cannot start with a number'
+                                                });
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Check for missing 'then' in if statements
+                                    if (trimmedLine.startsWith('if ')) {
+                                        let hasEndingThen = trimmedLine.endsWith('then');
+                                        let nextLine = i + 1 < lines.length ? lines[i + 1].trim() : '';
+                                        let hasNextLineThen = nextLine === 'then';
+                                        
+                                        if (!hasEndingThen && !hasNextLineThen && !trimmedLine.includes(' then ')) {
+                                            errors.push({
+                                                lineNumber: currentLine,
+                                                column: 1,
+                                                message: 'Missing "then" in if statement'
+                                            });
+                                        }
+                                    }
+                                    
+                                    let inString = false;
+                                    let stringChar = '';
+                                    let parenCount = 0;
+                                    
+                                    // Check for invalid method calls (using . instead of :)
+                                    if (line.match(/\\blocal\\s+[\\w_]+\\.[^\\d\\s]\\w*\\s*\\(/)) {
+                                        errors.push({
+                                            lineNumber: currentLine,
+                                            column: line.indexOf('.') + 1,
+                                            message: 'Invalid method call syntax. Use ":" instead of "." for method calls'
+                                        });
+                                    }
+                                    
+                                    // Check for invalid concatenation
+                                    if (line.match(/\\.\\.\\s*[+\\-*\\/%^]\\s*"/)) {
+                                        errors.push({
+                                            lineNumber: currentLine,
+                                            column: line.indexOf('..') + 1,
+                                            message: 'Invalid string concatenation'
+                                        });
+                                    }
+                                    
+                                    // Check for invalid function declarations
+                                    if (line.match(/\\bfunction\\s+\\w+\\s+[^(]/)) {
+                                        errors.push({
+                                            lineNumber: currentLine,
+                                            column: line.indexOf('function') + 1,
+                                            message: 'Invalid function declaration. Missing parentheses'
+                                        });
+                                    }
+                                    
+                                    // Process each character
+                                    for (let j = 0; j < line.length; j++) {
+                                        let char = line[j];
+                                        let nextChar = line[j + 1];
+                                        let prevChar = line[j - 1];
+                                        
+                                        // Handle strings and check for mixed quotes
+                                        if (!inString && (char === '"' || char === "'")) {
+                                            inString = true;
+                                            stringChar = char;
+                                        } else if (inString && char === stringChar && prevChar !== '\\\\') {
+                                            inString = false;
+                                        } else if (inString && char === '\\\\' && nextChar) {
+                                            // Check for invalid escape sequences
+                                            if (!'\\\\rnt"\\'abfv'.includes(nextChar)) {
+                                                errors.push({
+                                                    lineNumber: currentLine,
+                                                    column: j + 1,
+                                                    message: 'Invalid escape sequence'
+                                                });
+                                            }
+                                        } else if (inString && (char === '"' || char === "'") && char !== stringChar) {
+                                            errors.push({
+                                                lineNumber: currentLine,
+                                                column: j + 1,
+                                                message: 'Mixed quote types in string'
+                                            });
+                                        }
+                                        
+                                        // Handle comments
+                                        if (!inString && char === '-' && nextChar === '-') {
+                                            if (line.substr(j + 2).startsWith('[[')) {
+                                                inComment = true;
+                                            }
+                                            break; // Skip rest of line for single-line comments
+                                        }
+                                        
+                                        // Skip if in string
+                                        if (inString) continue;
+                                        
+                                        // Track brackets
+                                        if (char === '{') {
+                                            bracketStack.push({ line: currentLine, column: j + 1 });
+                                        }
+                                        else if (char === '}') {
+                                            if (bracketStack.length === 0) {
+                                                errors.push({
+                                                    lineNumber: currentLine,
+                                                    column: j + 1,
+                                                    message: 'Unexpected closing bracket'
+                                                });
+                                            } else {
+                                                bracketStack.pop();
+                                            }
+                                        }
+                                        
+                                        // Track parentheses
+                                        if (char === '(') {
+                                            parenCount++;
+                                        }
+                                        if (char === ')') {
+                                            parenCount--;
+                                            if (parenCount < 0) {
+                                                errors.push({
+                                                    lineNumber: currentLine,
+                                                    column: j + 1,
+                                                    message: 'Unexpected closing parenthesis'
+                                                });
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Check for unclosed parentheses at end of line
+                                    if (parenCount > 0) {
+                                        errors.push({
+                                            lineNumber: currentLine,
+                                            column: line.length,
+                                            message: 'Unclosed parenthesis'
+                                        });
+                                    }
+                                    
+                                    // Check for unclosed strings at end of line
+                                    if (inString) {
+                                        errors.push({
+                                            lineNumber: currentLine,
+                                            column: line.length,
+                                            message: 'Unterminated string'
+                                        });
+                                    }
+                                    
+                                    // Track function declarations
+                                    if (line.trim().startsWith('function ') || line.trim().startsWith('local function ')) {
+                                        functionStack.push({ line: currentLine, column: 1 });
+                                    }
+                                    
+                                    // Check for 'end' keywords
+                                    if (line.trim() === 'end' || line.trim().startsWith('end ')) {
+                                        if (functionStack.length > 0) {
+                                            functionStack.pop();
+                                        }
+                                    }
+                                }
+                                
+                                // At the end of processing, check if we're still in a multi-line comment
+                                if (inMultiLineComment) {
+                                    errors.push({
+                                        lineNumber: multiLineCommentStart,
+                                        column: 1,
+                                        message: 'Unclosed multi-line comment'
+                                    });
+                                }
+                                
+                                // Report unclosed brackets
+                                bracketStack.forEach(bracket => {
+                                    errors.push({
+                                        lineNumber: bracket.line,
+                                        column: bracket.column,
+                                        message: 'Unclosed bracket'
+                                    });
+                                });
+                                
+                                // Report unclosed functions
+                                functionStack.forEach(func => {
+                                    errors.push({
+                                        lineNumber: func.line,
+                                        column: func.column,
+                                        message: 'Function block missing end statement'
+                                    });
+                                });
+                                
+                                return errors.length > 0 ? errors : null;
+                            } catch (e) {
+                                return [{
+                                    lineNumber: 1,
+                                    column: 1,
+                                    message: e.message
+                                }];
+                            }
+                        }
+
+                        self.onmessage = function(e) {
+                            const result = checkLuaSyntax(e.data);
+                            self.postMessage(result);
+                        };
+                    `;
+
+                    return new Worker(URL.createObjectURL(new Blob([workerCode], { type: 'text/javascript' })));
+                };
+
+                // Initialize the worker
+                const luaWorker = createLuaWorker();
+
+                // Create a decoration collection for errors
+                let errorDecorations = [];
+
+                // Function to update error decorations
+                const updateErrorDecorations = (errors) => {
+                    const decorations = errors.map(error => ({
+                        range: new monaco.Range(
+                            error.lineNumber,
+                            error.column || 1,
+                            error.lineNumber,
+                            error.column + 1 || 1
+                        ),
+                        options: {
+                            isWholeLine: false,
+                            className: 'errorLine',
+                            glyphMarginClassName: 'errorGlyph',
+                            hoverMessage: { value: error.message }
+                        }
+                    }));
+
+                    errorDecorations = editor.deltaDecorations(errorDecorations, decorations);
+                };
+
+                // Add CSS for error highlighting
+                const errorStyle = document.createElement('style');
+                errorStyle.textContent = `
+                    .errorLine {
+                        text-decoration: wavy underline rgba(255, 71, 87, 0.6);
+                        text-decoration-skip-ink: none;
+                    }
+                    
+                    .errorGlyph {
+                        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23ff4757' d='M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 11a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0-3a1 1 0 0 1-1-1V5a1 1 0 0 1 2 0v3a1 1 0 0 1-1 1z'/%3E%3C/svg%3E") center center no-repeat;
+                        margin-left: 5px;
+                        opacity: 0.7;
+                    }
+
+                    /* Hover message styling */
+                    .monaco-editor .monaco-hover {
+                        background-color: #1a1b26 !important;
+                        border: 1px solid rgba(255, 71, 87, 0.2) !important;
+                        border-radius: 4px !important;
+                        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+                    }
+
+                    .monaco-editor .monaco-hover .hover-row:not(:first-child):not(:empty) {
+                        border-top: 1px solid rgba(255, 71, 87, 0.1) !important;
+                    }
+                `;
+                document.head.appendChild(errorStyle);
+
+                // Add marker for syntax errors
+                monaco.editor.setModelMarkers(editor.getModel(), 'lua', []);
+
+                // Listen for content changes and check syntax
+                let syntaxCheckTimeout;
+                editor.onDidChangeModelContent(() => {
+                    clearTimeout(syntaxCheckTimeout);
+                    syntaxCheckTimeout = setTimeout(() => {
+                        const code = editor.getValue();
+                        
+                        // Send code to worker for syntax checking
+                        luaWorker.postMessage(code);
+                    }, 500); // Debounce syntax checking
+                });
+
+                // Handle worker responses
+                luaWorker.onmessage = (e) => {
+                    const errors = e.data;
+                    if (errors) {
+                        // Update markers
+                        const markers = errors.map(error => ({
+                            severity: monaco.MarkerSeverity.Error,
+                            message: error.message,
+                            startLineNumber: error.lineNumber,
+                            startColumn: error.column,
+                            endLineNumber: error.lineNumber,
+                            endColumn: error.column + 1
+                        }));
+                        
+                        monaco.editor.setModelMarkers(editor.getModel(), 'lua', markers);
+                        
+                        // Update decorations
+                        updateErrorDecorations(errors);
+                    } else {
+                        // Clear markers and decorations if no errors
+                        monaco.editor.setModelMarkers(editor.getModel(), 'lua', []);
+                        updateErrorDecorations([]);
+                    }
+                };
+
+                // Add to the editor options
+                editor.updateOptions({
+                    glyphMargin: true,
+                    renderValidationDecorations: 'on',
+                    minimap: {
+                        enabled: true,
+                        showSlider: 'always',
+                        renderCharacters: false,
+                        maxColumn: 120,
+                        scale: 1
+                    }
+                });
+
+                // Add this after editor creation
+                editor.onDidChangeModelContent(() => {
+                    const code = editor.getValue();
+                    luaWorker.postMessage(code);
+                });
+
+                // Initial syntax check
+                luaWorker.postMessage(editor.getValue());
             });
         };
     </script>

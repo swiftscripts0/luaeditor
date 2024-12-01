@@ -10,7 +10,7 @@
     <meta name="title" content="Lua Editor - Online Lua Code Editor">
     <meta name="description" content="Professional online Lua code editor with syntax highlighting and autocompletion.">
     <meta name="keywords" content="lua, code editor, programming, development, online editor, lua editor">
-    <meta name="author" content="Your Name">
+    <meta name="author" content="Swift">
     <meta name="theme-color" content="#0a0b11">
 
     <!-- Favicon -->
@@ -32,6 +32,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="application-name" content="Lua Editor">
     <meta name="mobile-web-app-capable" content="yes">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
         body {
@@ -127,6 +129,31 @@
             background: rgba(41, 98, 255, 0.2);
         }
 
+        #container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            box-shadow: 0 0 30px rgba(88, 101, 242, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #iconContainer {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .icon {
+            cursor: pointer;
+            color: #ff4757;
+            font-size: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
         
         .monaco-editor .suggest-widget {
             border: 1px solid rgba(136, 192, 255, 0.2) !important;
@@ -209,6 +236,10 @@
             #editor {
                 font-size: 12px; /* Smaller font for mobile */
             }
+
+            .icon {
+                font-size: 24px; /* Smaller size for tablets */
+            }
             
             .monaco-editor .suggest-widget {
                 max-width: 90vw !important;
@@ -223,6 +254,14 @@
             ::-webkit-scrollbar {
                 width: 4px;
                 height: 4px;
+            }
+
+            .icon {
+                font-size: 20px; /* Even smaller size for mobile */
+            }
+
+            #iconContainer {
+                gap: 15px; /* Adjust gap for smaller screens */
             }
         }
 
@@ -253,6 +292,11 @@
 <body>
     <div id="container">
         <div id="editor"></div>
+        <div id="iconContainer">
+            <i id="saveFileButton" class="fas fa-save icon"></i>
+            <i id="openFileButton" class="fas fa-folder-open icon"></i>
+            <i id="clearButton" class="fas fa-trash icon"></i>
+        </div>
     </div>
     <script>
         // Initialize Monaco Editor
@@ -1141,6 +1185,36 @@
 
                 // Initial syntax check
                 luaWorker.postMessage(editor.getValue());
+
+                // Add clear button functionality
+                document.getElementById('clearButton').addEventListener('click', () => {
+                    editor.setValue(''); // Clear the content in the editor
+                });
+
+                // Open file functionality
+                document.getElementById('openFileButton').addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.lua';
+                    input.onchange = e => {
+                        const file = e.target.files[0];
+                        const reader = new FileReader();
+                        reader.onload = event => {
+                            editor.setValue(event.target.result); // Set the content in the editor to the file content
+                        };
+                        reader.readAsText(file);
+                    };
+                    input.click();
+                });
+
+                // Save file functionality
+                document.getElementById('saveFileButton').addEventListener('click', () => {
+                    const blob = new Blob([editor.getValue()], { type: 'text/x-lua' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'script.lua'; // Default file name
+                    link.click();
+                });
             });
         };
     </script>

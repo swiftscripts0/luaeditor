@@ -51,6 +51,7 @@
             box-shadow: 0 0 30px rgba(88, 101, 242, 0.2);
             position: relative;
             overflow: hidden;
+            flex-direction: column;
         }
 
         #container::before {
@@ -67,7 +68,7 @@
 
         #editor {
             width: 100%;
-            height: 100%;
+            height: calc(100% - 40px);
             opacity: 0;
             animation: fadeInEditor 0.3s ease-out forwards;
             position: relative;
@@ -101,7 +102,7 @@
             }
         }
 
-        
+
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -124,95 +125,114 @@
             box-shadow: 0 0 10px rgba(41, 98, 255, 0.3);
         }
 
-        
+
         ::selection {
             background: rgba(41, 98, 255, 0.2);
         }
 
-        #container {
-            width: 100vw;
-            height: 100vh;
+        .tab-container {
             display: flex;
-            box-shadow: 0 0 30px rgba(88, 101, 242, 0.2);
-            position: relative;
-            overflow: hidden;
+            background-color: #0a0b11;
+            padding: 8px 8px 0 8px;
+            border-bottom: 1px solid rgba(88, 101, 242, 0.2);
+            gap: 4px;
         }
 
-        #iconContainer {
-            position: absolute;
-            bottom: 20px;
-            right: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .icon {
+        .tab {
+            padding: 8px 24px;
+            background-color: #14151c;
+            color: #8892b0;
+            border: none;
+            border-radius: 4px 4px 0 0;
             cursor: pointer;
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            margin-right: 4px;
+            position: relative;
+            border: 1px solid rgba(88, 101, 242, 0.1);
+            border-bottom: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: tabIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: bottom;
+        }
+
+        @keyframes tabIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20%) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes tabOut {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20%) scale(0.9);
+            }
+        }
+
+        .tab.closing {
+            animation: tabOut 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab:hover {
+            background-color: #1a1b26;
+            color: #a8b1d0;
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background-color: #1a1b26;
+            color: #fff;
+            border-color: rgba(88, 101, 242, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tab .close-tab {
+            margin-left: 8px;
+            font-size: 12px;
+            opacity: 0.6;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+        }
+
+        .tab:hover .close-tab {
+            opacity: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab .close-tab:hover {
+            background-color: rgba(255, 71, 87, 0.2);
             color: #ff4757;
-            font-size: 30px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
 
-        
-        .monaco-editor .suggest-widget {
-            border: 1px solid rgba(136, 192, 255, 0.2) !important;
-            box-shadow: 0 0 20px rgba(88, 101, 242, 0.2) !important;
-            backdrop-filter: blur(8px);
+        .new-tab-btn {
+            padding: 8px 12px;
+            background-color: transparent;
+            color: #8892b0;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.6;
         }
 
-        .monaco-editor .suggest-widget .monaco-list-row:hover {
-            background-color: rgba(88, 101, 242, 0.2) !important;
-        }
-
-        .monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused {
-            background-color: rgba(88, 101, 242, 0.3) !important;
-        }
-
-        
-        .monaco-editor .view-line span {
-            text-shadow: 0 0 2px rgba(248, 248, 242, 0.4);
-        }
-
-        
-        .monaco-editor .mtk9 {
-            /* keywords */
-            text-shadow: 0 0 8px rgba(255, 121, 198, 0.5);
-        }
-
-        .monaco-editor .mtk20 {
-            /* strings */
-            text-shadow: 0 0 8px rgba(80, 250, 123, 0.5);
-        }
-
-        .monaco-editor .mtk6 {
-            /* numbers */
-            text-shadow: 0 0 8px rgba(255, 184, 108, 0.5);
-        }
-
-        .monaco-editor .mtk22 {
-            /* functions */
-            text-shadow: 0 0 8px rgba(102, 217, 239, 0.5);
-        }
-
-        .monaco-editor .monaco-scrollable-element {
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .monaco-scrollable-element > .scrollbar > .slider {
-            transition: all 0.1s ease-out;
-        }
-
-        .errorLine {
-            text-decoration: wavy underline rgba(255, 71, 87, 0.6);
-            text-decoration-skip-ink: none;
-        }
-        
-        .errorGlyph {
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23ff4757' d='M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 11a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm0-3a1 1 0 0 1-1-1V5a1 1 0 0 1 2 0v3a1 1 0 0 1-1 1z'/%3E%3C/svg%3E") center center no-repeat;
-            margin-left: 5px;
-            opacity: 0.7;
+        .new-tab-btn:hover {
+            color: #fff;
+            opacity: 1;
+            transform: translateY(-2px);
         }
 
         /* Hover message styling */
@@ -232,15 +252,17 @@
                 width: 100%;
                 height: 100%;
             }
-            
+
             #editor {
-                font-size: 12px; /* Smaller font for mobile */
+                font-size: 12px;
+                /* Smaller font for mobile */
             }
 
             .icon {
-                font-size: 24px; /* Smaller size for tablets */
+                font-size: 24px;
+                /* Smaller size for tablets */
             }
-            
+
             .monaco-editor .suggest-widget {
                 max-width: 90vw !important;
             }
@@ -248,33 +270,37 @@
 
         @media screen and (max-width: 480px) {
             #editor {
-                font-size: 11px; /* Even smaller font for very small devices */
+                font-size: 11px;
+                /* Even smaller font for very small devices */
             }
-            
+
             ::-webkit-scrollbar {
                 width: 4px;
                 height: 4px;
             }
 
             .icon {
-                font-size: 20px; /* Even smaller size for mobile */
+                font-size: 20px;
+                /* Even smaller size for mobile */
             }
 
             #iconContainer {
-                gap: 15px; /* Adjust gap for smaller screens */
+                gap: 15px;
+                /* Adjust gap for smaller screens */
             }
         }
 
         /* Add touch device optimizations */
         @media (hover: none) and (pointer: coarse) {
             #container::before {
-                display: none; /* Remove shadow effect on mobile */
+                display: none;
+                /* Remove shadow effect on mobile */
             }
-            
+
             .monaco-editor .monaco-scrollable-element {
                 -webkit-overflow-scrolling: touch;
             }
-            
+
             .monaco-editor .suggest-widget {
                 touch-action: manipulation;
             }
@@ -286,11 +312,248 @@
                 height: 100vh;
             }
         }
+
+        #iconContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .icon {
+            cursor: pointer;
+            color: #ff4757;
+            font-size: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Editor animations and effects */
+        .monaco-editor .cursor {
+            transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
+            animation: cursorBlink 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            will-change: opacity, transform;
+        }
+
+        @keyframes cursorBlink {
+            0%, 49% { 
+                opacity: 1;
+                transform: scaleY(1);
+            }
+            50%, 100% { 
+                opacity: 0.8;
+                transform: scaleY(0.9);
+            }
+        }
+
+        .monaco-editor .view-overlays .current-line {
+            border: none;
+            background-color: rgba(88, 101, 242, 0.05);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .monaco-editor .selected-text {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Remove typing animation but keep other animations */
+        .monaco-editor .view-line,
+        .monaco-editor .view-line span {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        /* Keep only cursor and UI animations */
+        .monaco-editor .cursor {
+            transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
+            animation: cursorBlink 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            will-change: opacity, transform;
+        }
+
+        /* Enhance syntax highlighting during typing */
+        .monaco-editor .mtk9,
+        .monaco-editor .mtk20,
+        .monaco-editor .mtk6,
+        .monaco-editor .mtk22 {
+            transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Make sure cursor stays sharp */
+        .monaco-editor .cursor {
+            transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
+            animation: cursorBlink 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            will-change: opacity, transform;
+        }
+
+        /* Smooth scrolling for editor */
+        .monaco-scrollable-element {
+            scroll-behavior: smooth !important;
+        }
+
+        .monaco-editor .scrollbar {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Intellisense popup animations */
+        .monaco-editor .suggest-widget {
+            animation: suggestIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top;
+        }
+
+        @keyframes suggestIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Parameter hints animation */
+        .monaco-editor .parameter-hints-widget {
+            animation: hintsIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes hintsIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Error/warning decoration animations */
+        .monaco-editor .squiggly-error {
+            animation: squigglyAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes squigglyAppear {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Hover widget animations */
+        .monaco-editor .monaco-hover {
+            animation: hoverIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: top left;
+        }
+
+        @keyframes hoverIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Enhanced scrollbar styling */
+        .monaco-scrollable-element > .scrollbar > .slider {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(88, 101, 242, 0.2);
+        }
+
+        .monaco-scrollable-element > .scrollbar > .slider:hover {
+            background: rgba(88, 101, 242, 0.4);
+        }
+
+        /* Smooth transition for editor focus */
+        .monaco-editor.focused {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Autocompletion UI styling */
+        .monaco-editor .suggest-widget {
+            background-color: rgba(10, 11, 17, 0.85) !important;  /* Semi-transparent dark background */
+            border: 1px solid rgba(88, 101, 242, 0.4) !important;
+            border-radius: 6px !important;
+            box-shadow: 0 0 10px rgba(88, 101, 242, 0.3), 
+                       0 0 20px rgba(88, 101, 242, 0.2) !important;
+            backdrop-filter: blur(8px) !important;
+            min-width: 300px !important;
+        }
+
+        .monaco-editor .suggest-widget .monaco-list {
+            background-color: transparent !important;
+            border-radius: 6px !important;
+        }
+
+        .monaco-editor .suggest-widget .monaco-list .monaco-list-row {
+            background-color: transparent !important;
+            transition: background-color 0.2s ease !important;
+        }
+
+        .monaco-editor .suggest-widget .monaco-list .monaco-list-row:hover:not(.focused) {
+            background-color: rgba(88, 101, 242, 0.1) !important;
+        }
+
+        .monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused {
+            background-color: rgba(88, 101, 242, 0.15) !important;
+            box-shadow: 0 0 8px rgba(88, 101, 242, 0.2) inset !important;
+        }
+
+        /* Ensure text remains visible on transparent background */
+        .monaco-editor .suggest-widget .monaco-list .monaco-list-row .monaco-highlighted-label,
+        .monaco-editor .suggest-widget .monaco-list .monaco-list-row .type-label,
+        .monaco-editor .suggest-widget .monaco-list .monaco-list-row .details-label {
+            color: #fff !important;
+            text-shadow: 0 0 2px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        /* Parameter hints styling */
+        .monaco-editor .parameter-hints-widget {
+            background-color: #0a0b11 !important;
+            border: 1px solid rgba(88, 101, 242, 0.2) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+            border-radius: 6px !important;
+        }
+
+        .monaco-editor .parameter-hints-widget .monaco-scrollable-element {
+            background-color: #0a0b11 !important;
+        }
+
+        .monaco-editor .parameter-hints-widget .phwrapper {
+            color: #8892b0 !important;
+            padding: 8px !important;
+        }
+
+        .monaco-editor .parameter-hints-widget .parameter {
+            color: #fff !important;
+        }
+
+        .monaco-editor .parameter-hints-widget .parameter.active {
+            color: #5865f2 !important;
+        }
     </style>
 </head>
 
 <body>
     <div id="container">
+        <div class="tab-container">
+            <button class="tab active" data-tab-id="tab-1">
+                main.lua
+                <span class="close-tab">×</span>
+            </button>
+            <button class="new-tab-btn">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
         <div id="editor"></div>
         <div id="iconContainer">
             <i id="saveFileButton" class="fas fa-save icon"></i>
@@ -299,6 +562,124 @@
         </div>
     </div>
     <script>
+        let tabCounter = 1;
+        let editor; // Global editor reference
+        // Store code for each tab
+        const tabContents = new Map();
+
+        function initializeTabs() {
+            const tabContainer = document.querySelector('.tab-container');
+            const newTabBtn = document.querySelector('.new-tab-btn');
+
+            // Initialize first tab's content
+            const firstTab = document.querySelector('.tab');
+            if (firstTab) {
+                const tabId = 'tab-1';
+                firstTab.dataset.tabId = tabId;
+                tabContents.set(tabId, editor.getValue());
+            }
+
+            // Event delegation for tab clicks and close buttons
+            tabContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('tab')) {
+                    activateTab(e.target);
+                } else if (e.target.classList.contains('close-tab')) {
+                    closeTab(e.target.parentElement);
+                }
+            });
+
+            // New tab button click handler
+            newTabBtn.addEventListener('click', createNewTab);
+        }
+
+        function createNewTab() {
+            const tabContainer = document.querySelector('.tab-container');
+            const newTabBtn = document.querySelector('.new-tab-btn');
+
+            // Create new tab
+            const newTab = document.createElement('button');
+            const tabId = `tab-${Date.now()}`;
+            newTab.className = 'tab';
+            newTab.dataset.tabId = tabId;
+            newTab.innerHTML = `untitled-${tabCounter}.lua<span class="close-tab">×</span>`;
+
+            // Insert tab before the new tab button
+            tabContainer.insertBefore(newTab, newTabBtn);
+
+            // Store current editor content for the active tab
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab) {
+                tabContents.set(activeTab.dataset.tabId, editor.getValue());
+            }
+
+            // Initialize new tab with default content
+            const defaultContent = [
+                '--[[',
+                '    Neon Lua Editor',
+                '    Made with 💜 by Swift',
+                ']]',
+                '',
+                'print("Hello, World!")'
+            ].join('\n');
+
+            tabContents.set(tabId, defaultContent);
+
+            // Activate the new tab
+            activateTab(newTab);
+            tabCounter++;
+        }
+
+        function activateTab(clickedTab) {
+            const previousTab = document.querySelector('.tab.active');
+
+            // Store current editor content for the previous tab
+            if (previousTab) {
+                tabContents.set(previousTab.dataset.tabId, editor.getValue());
+            }
+
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Add active class to clicked tab
+            clickedTab.classList.add('active');
+
+            // Load content for the activated tab
+            const tabId = clickedTab.dataset.tabId;
+            const content = tabContents.get(tabId) || '';
+            editor.setValue(content);
+        }
+
+        function closeTab(tab) {
+            // Don't close if it's the last tab
+            if (document.querySelectorAll('.tab').length <= 1) return;
+
+            const wasActive = tab.classList.contains('active');
+            const nextTab = tab.nextElementSibling;
+            const previousTab = tab.previousElementSibling;
+
+            // Add closing animation class
+            tab.classList.add('closing');
+
+            // Remove tab content from storage
+            tabContents.delete(tab.dataset.tabId);
+
+            // Wait for animation to complete before removing
+            setTimeout(() => {
+                tab.remove();
+
+                // If the closed tab was active, activate the next available tab
+                if (wasActive) {
+                    if (nextTab && !nextTab.classList.contains('new-tab-btn')) {
+                        activateTab(nextTab);
+                    } else if (previousTab) {
+                        activateTab(previousTab);
+                    }
+                }
+            }, 200); // Match the animation duration
+        }
+
         // Initialize Monaco Editor
         window.onload = () => {
             require.config({
@@ -316,26 +697,61 @@
                 monaco.languages.register({ id: 'lua' });
 
                 // Create editor with advanced settings
-                const editor = monaco.editor.create(document.getElementById('editor'), {
-                    value: `--[[
-    Neon Lua Editor
-    Made with 💜 by Swift
-]]
-
-print("Hello, World!")`,
+                editor = monaco.editor.create(document.getElementById('editor'), {
+                    value: [
+                        '--[[',
+                        '    Neon Lua Editor',
+                        '    Made with 💜 by Swift',
+                        ']]',
+                        '',
+                        'print("Hello, World!")'
+                    ].join('\n'),
                     language: 'lua',
-                    theme: 'neon-dark',
+                    theme: 'vs-dark',
                     fontSize: 14,
                     automaticLayout: true,
                     minimap: {
                         enabled: true
+                    },
+                    smoothScrolling: true,
+                    cursorSmoothCaretAnimation: 'on',
+                    cursorBlinking: 'smooth',
+                    renderWhitespace: 'none',
+                    renderLineHighlight: 'all',
+                    lineNumbers: 'on',
+                    roundedSelection: true,
+                    wordWrap: 'on',
+                    wordWrapColumn: 80,
+                    wrappingStrategy: 'advanced',
+                    scrollBeyondLastLine: false,
+                    renderFinalNewline: true,
+                    formatOnPaste: true,
+                    formatOnType: true,
+                    glyphMargin: false,
+                    padding: {
+                        top: 10,
+                        bottom: 10
+                    },
+                    mouseWheelScrollSensitivity: 1.5,
+                    fastScrollSensitivity: 7,
+                    scrollbar: {
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10,
+                        useShadows: true,
+                        verticalHasArrows: false,
+                        horizontalHasArrows: false,
+                        vertical: 'visible',
+                        horizontal: 'visible'
                     }
                 });
+
+                // Initialize tabs after editor is created
+                initializeTabs();
 
                 // Function to parse and update context
                 function updateContext(code) {
                     const lines = code.split('\n');
-                    
+
                     // Reset context when full document is parsed
                     window.definedVariables.clear();
                     window.definedFunctions.clear();
@@ -343,7 +759,7 @@ print("Hello, World!")`,
                     lines.forEach(line => {
                         // Remove comments
                         const codeLine = line.split('--')[0];
-                        
+
                         // Match local variable declarations
                         const localMatch = codeLine.match(/\blocal\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/);
                         if (localMatch) {
@@ -366,165 +782,150 @@ print("Hello, World!")`,
 
                 // Register completion item provider
                 monaco.languages.registerCompletionItemProvider('lua', {
-                    triggerCharacters: ['.', ':'],
-                    provideCompletionItems: function(model, position, context, token) {
+                    triggerCharacters: ['.', ':', '_'],
+                    provideCompletionItems: function(model, position) {
                         const suggestions = [];
-                        const lineContent = model.getLineContent(position.lineNumber);
-                        const wordUntilPosition = model.getWordUntilPosition(position);
-                        
-                        // Check if we're in a method context (after a colon)
-                        const isMethodContext = lineContent.substring(0, position.column - 1).match(/:\s*$/);
-                        // Check if we're in a property context (after a dot)
-                        const isPropertyContext = lineContent.substring(0, position.column - 1).match(/\.\s*$/);
-                        
-                        // Get the object we're working with (before the : or .)
-                        let currentObject = '';
-                        if (isMethodContext || isPropertyContext) {
-                            const beforeCursor = lineContent.substring(0, position.column - 1);
-                            const match = beforeCursor.match(/([A-Za-z_][A-Za-z0-9_]*)\s*[:.]\s*$/);
-                            if (match) {
-                                currentObject = match[1];
-                            }
-                        }
-
-                        // Define object-specific methods and properties
-                        const objectCompletions = {
-                            'game': {
-                                methods: [
-                                    { 
-                                        label: 'GetService',
-                                        insertText: 'GetService("$1")',
-                                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                                        documentation: 'Gets a Roblox service by name'
-                                    },
-                                    { 
-                                        label: 'FindService',
-                                        insertText: 'FindService("$1")',
-                                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                                        documentation: 'Finds a Roblox service by name'
-                                    }
-                                ],
-                                properties: [
-                                    'Players',
-                                    'Workspace',
-                                    'ReplicatedStorage',
-                                    'ServerStorage',
-                                    'StarterGui',
-                                    'StarterPack'
-                                ]
-                            },
-                            'Instance': {
-                                methods: [
-                                    { 
-                                        label: 'new',
-                                        insertText: 'new("$1")',
-                                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                                        documentation: 'Creates a new instance'
-                                    },
-                                    { 
-                                        label: 'Destroy',
-                                        insertText: 'Destroy()',
-                                        documentation: 'Destroys this instance'
-                                    },
-                                    { 
-                                        label: 'Clone',
-                                        insertText: 'Clone()',
-                                        documentation: 'Creates a copy of this instance'
-                                    }
-                                ],
-                                properties: [
-                                    'Name',
-                                    'Parent',
-                                    'ClassName'
-                                ]
-                            }
+                        const word = model.getWordUntilPosition(position);
+                        const range = {
+                            startLineNumber: position.lineNumber,
+                            endLineNumber: position.lineNumber,
+                            startColumn: word.startColumn,
+                            endColumn: word.endColumn
                         };
 
-                        // If we're in a method or property context and have object-specific completions
-                        if ((isMethodContext || isPropertyContext) && objectCompletions[currentObject]) {
-                            const completions = isMethodContext ? 
-                                objectCompletions[currentObject].methods :
-                                objectCompletions[currentObject].properties;
+                        // Get the current line content up to the cursor
+                        const lineContent = model.getLineContent(position.lineNumber);
+                        const contentBeforeCursor = lineContent.substring(0, position.column - 1);
 
-                            // Calculate the correct range for replacement
-                            const range = {
-                                startLineNumber: position.lineNumber,
-                                endLineNumber: position.lineNumber,
-                                startColumn: position.column - wordUntilPosition.word.length,
-                                endColumn: position.column
-                            };
+                        // Determine context
+                        const isMethodContext = contentBeforeCursor.endsWith(':');
+                        const isPropertyContext = contentBeforeCursor.endsWith('.');
+                        const isNewContext = contentBeforeCursor.trim().endsWith('=');
 
-                            completions.forEach(item => {
-                                if (typeof item === 'string') {
-                                    suggestions.push({
-                                        label: item,
-                                        kind: monaco.languages.CompletionItemKind.Property,
-                                        insertText: item,
-                                        range: range,
-                                        filterText: item
-                                    });
-                                } else {
-                                    suggestions.push({
-                                        label: item.label,
-                                        kind: monaco.languages.CompletionItemKind.Method,
-                                        insertText: item.insertText,
-                                        insertTextRules: item.insertTextRules,
-                                        range: range,
-                                        filterText: item.label,
-                                        documentation: item.documentation
-                                    });
-                                }
-                            });
-                        } else {
-                            // Add Roblox built-in globals
-                            const robloxGlobals = [
-                                { label: 'game', kind: monaco.languages.CompletionItemKind.Variable },
-                                { label: 'workspace', kind: monaco.languages.CompletionItemKind.Variable },
-                                { label: 'script', kind: monaco.languages.CompletionItemKind.Variable },
-                                // Common Roblox services
-                                { label: 'Players', kind: monaco.languages.CompletionItemKind.Class },
-                                { label: 'ReplicatedStorage', kind: monaco.languages.CompletionItemKind.Class },
-                                { label: 'RunService', kind: monaco.languages.CompletionItemKind.Class },
-                                { label: 'TweenService', kind: monaco.languages.CompletionItemKind.Class },
-                                // Common Roblox types
-                                { label: 'Vector3', kind: monaco.languages.CompletionItemKind.Class },
-                                { label: 'CFrame', kind: monaco.languages.CompletionItemKind.Class },
-                                { label: 'Instance', kind: monaco.languages.CompletionItemKind.Class },
-                                { label: 'Color3', kind: monaco.languages.CompletionItemKind.Class },
-                                { label: 'UDim2', kind: monaco.languages.CompletionItemKind.Class },
-                                // Common Roblox functions
-                                { label: 'wait', kind: monaco.languages.CompletionItemKind.Function },
-                                { label: 'spawn', kind: monaco.languages.CompletionItemKind.Function },
-                                { label: 'require', kind: monaco.languages.CompletionItemKind.Function },
-                                { label: 'print', kind: monaco.languages.CompletionItemKind.Function },
-                                { label: 'warn', kind: monaco.languages.CompletionItemKind.Function },
-                                { label: 'error', kind: monaco.languages.CompletionItemKind.Function }
-                            ];
+                        // Common Lua keywords
+                        const keywords = [
+                            { label: 'local', kind: monaco.languages.CompletionItemKind.Keyword, detail: 'Keyword', documentation: 'Declares a local variable' },
+                            { label: 'function', kind: monaco.languages.CompletionItemKind.Keyword, detail: 'Keyword', documentation: 'Declares a function' },
+                            { label: 'if', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'if ${1:condition} then\n\t$0\nend', documentation: 'Conditional statement' },
+                            { label: 'for', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'for ${1:i}=${2:1},${3:10} do\n\t$0\nend', documentation: 'Numeric for loop' },
+                            { label: 'while', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'while ${1:condition} do\n\t$0\nend', documentation: 'While loop' },
+                            { label: 'repeat', kind: monaco.languages.CompletionItemKind.Keyword, insertText: 'repeat\n\t$0\nuntil ${1:condition}', documentation: 'Repeat-until loop' },
+                            { label: 'break', kind: monaco.languages.CompletionItemKind.Keyword, documentation: 'Breaks out of a loop' },
+                            { label: 'return', kind: monaco.languages.CompletionItemKind.Keyword, documentation: 'Returns from a function' }
+                        ];
 
-                            // Add user-defined variables
-                            const userVariables = Array.from(window.definedVariables).map(v => ({
-                                label: v,
-                                kind: monaco.languages.CompletionItemKind.Variable,
-                                detail: 'User defined variable',
-                                insertText: v
-                            }));
-
-                            // Add user-defined functions
-                            const userFunctions = Array.from(window.definedFunctions).map(f => ({
-                                label: f,
+                        // Lua standard library functions with better documentation
+                        const stdLibFunctions = [
+                            {
+                                label: 'print',
                                 kind: monaco.languages.CompletionItemKind.Function,
-                                detail: 'User defined function',
-                                insertText: f
-                            }));
+                                insertText: 'print($0)',
+                                documentation: {
+                                    value: '```lua\nprint(...)\n```\nWrites the arguments to stdout.\n\n**Example:**\n```lua\nprint("Hello", "World") --> Hello World\n```'
+                                }
+                            },
+                            {
+                                label: 'type',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'type($0)',
+                                documentation: {
+                                    value: '```lua\ntype(v)\n```\nReturns the type of its only argument as a string.\n\n**Example:**\n```lua\nprint(type("hello")) --> string\n```'
+                                }
+                            },
+                            {
+                                label: 'pairs',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'pairs($0)',
+                                documentation: {
+                                    value: '```lua\npairs(t)\n```\nReturns an iterator function to traverse all fields of a table.\n\n**Example:**\n```lua\nfor k,v in pairs(t) do\n  print(k,v)\nend\n```'
+                                }
+                            },
+                            {
+                                label: 'ipairs',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'ipairs($0)',
+                                documentation: {
+                                    value: '```lua\nipairs(t)\n```\nReturns an iterator function to traverse sequential elements of a table.\n\n**Example:**\n```lua\nfor i,v in ipairs(t) do\n  print(i,v)\nend\n```'
+                                }
+                            },
+                            {
+                                label: 'tonumber',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'tonumber($0)',
+                                documentation: {
+                                    value: '```lua\ntonumber(e [, base])\n```\nConverts argument to a number.\n\n**Example:**\n```lua\nprint(tonumber("123")) --> 123\n```'
+                                }
+                            },
+                            {
+                                label: 'tostring',
+                                kind: monaco.languages.CompletionItemKind.Function,
+                                insertText: 'tostring($0)',
+                                documentation: {
+                                    value: '```lua\ntostring(e)\n```\nConverts argument to a string.\n\n**Example:**\n```lua\nprint(tostring(123)) --> "123"\n```'
+                                }
+                            }
+                        ];
 
-                            suggestions.push(...robloxGlobals);
-                            suggestions.push(...userVariables);
-                            suggestions.push(...userFunctions);
+                        // Add context-specific suggestions
+                        if (!isMethodContext && !isPropertyContext) {
+                            suggestions.push(...keywords);
+                            suggestions.push(...stdLibFunctions);
+                            
+                            // Add user-defined variables and functions
+                            window.definedVariables.forEach(variable => {
+                                suggestions.push({
+                                    label: variable,
+                                    kind: monaco.languages.CompletionItemKind.Variable,
+                                    detail: 'User-defined variable',
+                                    range: range
+                                });
+                            });
+
+                            window.definedFunctions.forEach(func => {
+                                suggestions.push({
+                                    label: func,
+                                    kind: monaco.languages.CompletionItemKind.Function,
+                                    detail: 'User-defined function',
+                                    range: range
+                                });
+                            });
                         }
+
+                        // Add snippets for common patterns
+                        const snippets = [
+                            {
+                                label: 'function',
+                                kind: monaco.languages.CompletionItemKind.Snippet,
+                                insertText: 'function ${1:name}(${2:params})\n\t$0\nend',
+                                documentation: 'Function definition snippet',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                            },
+                            {
+                                label: 'for-ipairs',
+                                kind: monaco.languages.CompletionItemKind.Snippet,
+                                insertText: 'for ${1:i}, ${2:v} in ipairs(${3:table}) do\n\t$0\nend',
+                                documentation: 'For-ipairs loop snippet',
+                                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                            }
+                        ];
+
+                        suggestions.push(...snippets);
 
                         return {
-                            suggestions: suggestions
+                            suggestions: suggestions.map(s => ({
+                                ...s,
+                                range: range,
+                                kind: s.kind || monaco.languages.CompletionItemKind.Function,
+                                insertTextRules: s.insertTextRules || monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                            }))
                         };
+                    }
+                });
+
+                // Disable ghost text if causing issues
+                editor.updateOptions({
+                    inlineSuggest: {
+                        enabled: false
                     }
                 });
 
@@ -737,7 +1138,7 @@ print("Hello, World!")`,
 
                 const luaWorker = createLuaWorker();
 
-                luaWorker.onmessage = function(e) {
+                luaWorker.onmessage = function (e) {
                     const model = editor.getModel();
                     const markers = e.data.errors.map(error => ({
                         severity: error.severity || monaco.MarkerSeverity.Error,
@@ -789,7 +1190,7 @@ print("Hello, World!")`,
 
                 // Set up custom worker to handle validation
                 self.MonacoEnvironment = {
-                    getWorkerUrl: function(moduleId, label) {
+                    getWorkerUrl: function (moduleId, label) {
                         return `data:text/javascript;charset=utf-8,${encodeURIComponent(`
                             self.onmessage = function() {
                                 self.postMessage({ markers: [] });
@@ -834,16 +1235,7 @@ print("Hello, World!")`,
                                 end: new RegExp("^\\s*--\\s*#?endregion\\b")
                             }
                         },
-                        onEnterRules: [
-                            {
-                                beforeText: /:\s*Connect\s*\(\s*function\s*\([^)]*\)\s*$/,
-                                action: { indentAction: monaco.languages.IndentAction.Indent }
-                            },
-                            {
-                                beforeText: /\bend\)\s*$/,
-                                action: { indentAction: monaco.languages.IndentAction.Outdent }
-                            }
-                        ]
+                        wordPattern: /(#?-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g
                     });
                 });
 
@@ -923,7 +1315,7 @@ print("Hello, World!")`,
                                 kind: monaco.languages.CompletionItemKind.Function,
                                 insertText: 'print(${1:value})',
                                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-                                documentation: 'Prints a value to the console'
+                                documentation: 'Prints a value to console'
                             },
                             {
                                 label: 'Instance.new',
@@ -1170,7 +1562,7 @@ print("Hello, World!")`,
                         reader.onload = (event) => {
                             const content = event.target.result;
                             editor.setValue(content);
-                            
+
                             // Trigger syntax check after setting value
                             luaWorker.postMessage(content);
 
@@ -1195,7 +1587,6 @@ print("Hello, World!")`,
                 document.head.appendChild(style);
             });
         };
-        
     </script>
 </body>
 

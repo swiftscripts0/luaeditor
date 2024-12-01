@@ -2,7 +2,7 @@
 
 Neon Lua Editor is a sophisticated, neon-themed Lua code editor designed for both Roblox Lua development and general Lua programming. Built with the Monaco Editor, it features advanced syntax highlighting, intelligent autocompletion, and a visually stunning cyberpunk-inspired design.
 
-![Editor Preview](imgur.com/a/ap747FO)
+![Editor Preview](https://imgur.com/a/ap747FO)
 
 ## Features
 

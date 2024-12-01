@@ -1,34 +1,34 @@
 # Neon Lua Editor
 
-A sophisticated, neon-themed Lua code editor built with Ace.js, featuring advanced syntax highlighting, intelligent autocompletion, and a beautiful cyberpunk-inspired design. Optimized for both Roblox Lua development and general Lua programming.
+Neon Lua Editor is a sophisticated, neon-themed Lua code editor designed for both Roblox Lua development and general Lua programming. Built with the Monaco Editor, it features advanced syntax highlighting, intelligent autocompletion, and a visually stunning cyberpunk-inspired design.
 
 ![Editor Preview](https://cdn.discordapp.com/attachments/1156188282330288139/1310266707721322586/image.png?ex=67449876&is=674346f6&hm=4fd2b3f043d2925366a3ddf28de1289b937017f157e339783a37579eb36e84b9&)
 
 ## Features
 
 ### Core Features
-- 🎨 Cyberpunk-inspired neon theme with dynamic glow effects
-- 🚀 Intelligent Lua code autocompletion
-- 📝 Real-time syntax highlighting
-- 🗺️ Interactive code minimap
-- 🔍 Advanced search and replace functionality
-- 📱 Responsive design for all screen sizes
+- 🎨 **Cyberpunk-inspired neon theme** with dynamic glow effects
+- 🚀 **Intelligent Lua code autocompletion** for efficient coding
+- 📝 **Real-time syntax highlighting** for improved readability
+- 🗺️ **Interactive code minimap** for quick navigation
+- 🔍 **Advanced search and replace functionality**
+- 📱 **Responsive design** optimized for all screen sizes
 
 ### Advanced Features
-- 🤖 Context-aware Roblox API suggestions
-- 🎯 Smart variable and function tracking
-- 💡 Intelligent scope-based completions
-- 🔄 Real-time code parsing and analysis
-- 📦 Built-in Lua and Roblox service snippets
-- ⚡ Performance-optimized animations
+- 🤖 **Context-aware Roblox API suggestions** for enhanced development
+- 🎯 **Smart variable and function tracking** to streamline coding
+- 💡 **Intelligent scope-based completions** for better context understanding
+- 🔄 **Real-time code parsing and analysis** for immediate feedback
+- 📦 **Built-in Lua and Roblox service snippets** for rapid development
+- ⚡ **Performance-optimized animations** for a smooth user experience
 
 ### Visual Enhancements
-- ✨ Neon text effects for syntax elements
-- 💫 Smooth cursor and selection animations
-- 🌈 Custom scrollbar styling
-- 🎆 Animated code folding
-- 🎇 Dynamic hover effects
-- 🖼️ Beautiful font rendering with Fira Code
+- ✨ **Neon text effects** for syntax elements
+- 💫 **Smooth cursor and selection animations**
+- 🌈 **Custom scrollbar styling** for a unique look
+- 🎆 **Animated code folding** for better organization
+- 🎇 **Dynamic hover effects** for interactive feedback
+- 🖼️ **Beautiful font rendering** with Fira Code
 
 ## Technical Specifications
 
@@ -57,10 +57,10 @@ git clone https://github.com/yourusername/neon-lua-editor.git
 ## Usage
 
 ### Basic Operations
-- Start typing to see intelligent autocompletion
-- Use the minimap for quick navigation
-- Drag and drop `.lua` files to open them
-- Use keyboard shortcuts for common operations
+- Start typing to see intelligent autocompletion suggestions.
+- Use the minimap for quick navigation through your code.
+- Drag and drop `.lua` files to open them directly in the editor.
+- Utilize keyboard shortcuts for common operations.
 
 ### Keyboard Shortcuts
 - `Ctrl/Cmd + Space` - Trigger autocompletion
@@ -72,23 +72,23 @@ git clone https://github.com/yourusername/neon-lua-editor.git
 - `Ctrl/Cmd + A` - Select all
 
 ### Code Intelligence
-- Automatic service method detection
-- Context-aware variable suggestions
-- Smart function parameter hints
-- Real-time error detection
-- Scope-aware completions
+- Automatic service method detection for Roblox APIs
+- Context-aware variable suggestions for improved coding efficiency
+- Smart function parameter hints to guide your coding
+- Real-time error detection to catch issues as you code
+- Scope-aware completions for better context understanding
 
 ## Development
 
 ### Prerequisites
 - Modern web browser
 - Basic understanding of HTML/CSS/JavaScript
-- Familiarity with Ace Editor API
+- Familiarity with the Monaco Editor API
 
 ### Customization
 The editor can be customized by modifying:
 - Theme colors in CSS variables
-- Autocompletion behavior in `luaParser`
+- Autocompletion behavior in the Lua parser
 - Animation timings and effects
 - Minimap rendering options
 

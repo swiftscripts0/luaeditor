@@ -18,6 +18,9 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/logos/lua-icon-16x16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/logos/lua-icon-180x180.png">
 
+    <!-- Styling -->
+    <link rel="stylesheet" href="./assets/css/styles.css">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,513 +37,6 @@
     <meta name="mobile-web-app-capable" content="yes">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #0a0b11;
-            font-family: 'Fira Code', monospace;
-        }
-
-        #container {
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            box-shadow: 0 0 30px rgba(88, 101, 242, 0.2);
-            position: relative;
-            overflow: hidden;
-            flex-direction: column;
-        }
-
-        #container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            box-shadow: inset 0 0 100px rgba(88, 101, 242, 0.1);
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        #editor {
-            width: 100%;
-            height: calc(100% - 40px);
-            opacity: 0;
-            animation: fadeInEditor 0.3s ease-out forwards;
-            position: relative;
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        #editor::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            pointer-events: none;
-            box-shadow:
-                inset 0 0 30px rgba(88, 101, 242, 0.1),
-                0 0 20px rgba(136, 192, 255, 0.1);
-            z-index: 2;
-        }
-
-        @keyframes fadeInEditor {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #0d0e15;
-            border-radius: 3px;
-            box-shadow: inset 0 0 5px rgba(88, 101, 242, 0.1);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #2d3144;
-            border-radius: 3px;
-            transition: all 0.3s ease;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #3d4260;
-            box-shadow: 0 0 10px rgba(41, 98, 255, 0.3);
-        }
-
-
-        ::selection {
-            background: rgba(41, 98, 255, 0.2);
-        }
-
-        .tab-container {
-            display: flex;
-            background-color: #0a0b11;
-            padding: 8px 8px 0 8px;
-            border-bottom: 1px solid rgba(88, 101, 242, 0.2);
-            gap: 4px;
-        }
-
-        .tab {
-            padding: 8px 24px;
-            background-color: #14151c;
-            color: #8892b0;
-            border: none;
-            border-radius: 4px 4px 0 0;
-            cursor: pointer;
-            font-family: 'Fira Code', monospace;
-            font-size: 14px;
-            margin-right: 4px;
-            position: relative;
-            border: 1px solid rgba(88, 101, 242, 0.1);
-            border-bottom: none;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            animation: tabIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: bottom;
-        }
-
-        @keyframes tabIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20%) scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        @keyframes tabOut {
-            from {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-20%) scale(0.9);
-            }
-        }
-
-        .tab.closing {
-            animation: tabOut 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab:hover {
-            background-color: #1a1b26;
-            color: #a8b1d0;
-            transform: translateY(-2px);
-        }
-
-        .tab.active {
-            background-color: #1a1b26;
-            color: #fff;
-            border-color: rgba(88, 101, 242, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .tab .close-tab {
-            margin-left: 8px;
-            font-size: 12px;
-            opacity: 0.6;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-        }
-
-        .tab:hover .close-tab {
-            opacity: 1;
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-
-        .tab .close-tab:hover {
-            background-color: rgba(255, 71, 87, 0.2);
-            color: #ff4757;
-        }
-
-        .new-tab-btn {
-            padding: 8px 12px;
-            background-color: transparent;
-            color: #8892b0;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0.6;
-        }
-
-        .new-tab-btn:hover {
-            color: #fff;
-            opacity: 1;
-            transform: translateY(-2px);
-        }
-
-        /* Hover message styling */
-        .monaco-editor .monaco-hover {
-            background-color: #1a1b26 !important;
-            border: 1px solid rgba(255, 71, 87, 0.2) !important;
-            border-radius: 4px !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-        }
-
-        .monaco-editor .monaco-hover .hover-row:not(:first-child):not(:empty) {
-            border-top: 1px solid rgba(255, 71, 87, 0.1) !important;
-        }
-
-        @media screen and (max-width: 768px) {
-            #container {
-                width: 100%;
-                height: 100%;
-            }
-
-            #editor {
-                font-size: 12px;
-                /* Smaller font for mobile */
-            }
-
-            .icon {
-                font-size: 24px;
-                /* Smaller size for tablets */
-            }
-
-            .monaco-editor .suggest-widget {
-                max-width: 90vw !important;
-            }
-        }
-
-        @media screen and (max-width: 480px) {
-            #editor {
-                font-size: 11px;
-                /* Even smaller font for very small devices */
-            }
-
-            ::-webkit-scrollbar {
-                width: 4px;
-                height: 4px;
-            }
-
-            .icon {
-                font-size: 20px;
-                /* Even smaller size for mobile */
-            }
-
-            #iconContainer {
-                gap: 15px;
-                /* Adjust gap for smaller screens */
-            }
-        }
-
-        /* Add touch device optimizations */
-        @media (hover: none) and (pointer: coarse) {
-            #container::before {
-                display: none;
-                /* Remove shadow effect on mobile */
-            }
-
-            .monaco-editor .monaco-scrollable-element {
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .monaco-editor .suggest-widget {
-                touch-action: manipulation;
-            }
-        }
-
-        /* Handle orientation changes */
-        @media screen and (orientation: landscape) and (max-height: 500px) {
-            #container {
-                height: 100vh;
-            }
-        }
-
-        #iconContainer {
-            position: fixed;
-            bottom: 20px;
-            right: 30px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            z-index: 1000;
-        }
-
-        .icon {
-            cursor: pointer;
-            color: #ff4757;
-            font-size: 30px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Editor animations and effects */
-        .monaco-editor .cursor {
-            transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
-            animation: cursorBlink 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-            will-change: opacity, transform;
-        }
-
-        @keyframes cursorBlink {
-            0%, 49% { 
-                opacity: 1;
-                transform: scaleY(1);
-            }
-            50%, 100% { 
-                opacity: 0.8;
-                transform: scaleY(0.9);
-            }
-        }
-
-        .monaco-editor .view-overlays .current-line {
-            border: none;
-            background-color: rgba(88, 101, 242, 0.05);
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .monaco-editor .selected-text {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Remove typing animation but keep other animations */
-        .monaco-editor .view-line,
-        .monaco-editor .view-line span {
-            animation: none !important;
-            transition: none !important;
-        }
-
-        /* Keep only cursor and UI animations */
-        .monaco-editor .cursor {
-            transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
-            animation: cursorBlink 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-            will-change: opacity, transform;
-        }
-
-        /* Enhance syntax highlighting during typing */
-        .monaco-editor .mtk9,
-        .monaco-editor .mtk20,
-        .monaco-editor .mtk6,
-        .monaco-editor .mtk22 {
-            transition: color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Make sure cursor stays sharp */
-        .monaco-editor .cursor {
-            transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
-            animation: cursorBlink 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-            will-change: opacity, transform;
-        }
-
-        /* Smooth scrolling for editor */
-        .monaco-scrollable-element {
-            scroll-behavior: smooth !important;
-        }
-
-        .monaco-editor .scrollbar {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Intellisense popup animations */
-        .monaco-editor .suggest-widget {
-            animation: suggestIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: top;
-        }
-
-        @keyframes suggestIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px) scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* Parameter hints animation */
-        .monaco-editor .parameter-hints-widget {
-            animation: hintsIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes hintsIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Error/warning decoration animations */
-        .monaco-editor .squiggly-error {
-            animation: squigglyAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        @keyframes squigglyAppear {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        /* Hover widget animations */
-        .monaco-editor .monaco-hover {
-            animation: hoverIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            transform-origin: top left;
-        }
-
-        @keyframes hoverIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        /* Enhanced scrollbar styling */
-        .monaco-scrollable-element > .scrollbar > .slider {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(88, 101, 242, 0.2);
-        }
-
-        .monaco-scrollable-element > .scrollbar > .slider:hover {
-            background: rgba(88, 101, 242, 0.4);
-        }
-
-        /* Smooth transition for editor focus */
-        .monaco-editor.focused {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Autocompletion UI styling */
-        .monaco-editor .suggest-widget {
-            background-color: rgba(10, 11, 17, 0.85) !important;  /* Semi-transparent dark background */
-            border: 1px solid rgba(88, 101, 242, 0.4) !important;
-            border-radius: 6px !important;
-            box-shadow: 0 0 10px rgba(88, 101, 242, 0.3), 
-                       0 0 20px rgba(88, 101, 242, 0.2) !important;
-            backdrop-filter: blur(8px) !important;
-            min-width: 300px !important;
-        }
-
-        .monaco-editor .suggest-widget .monaco-list {
-            background-color: transparent !important;
-            border-radius: 6px !important;
-        }
-
-        .monaco-editor .suggest-widget .monaco-list .monaco-list-row {
-            background-color: transparent !important;
-            transition: background-color 0.2s ease !important;
-        }
-
-        .monaco-editor .suggest-widget .monaco-list .monaco-list-row:hover:not(.focused) {
-            background-color: rgba(88, 101, 242, 0.1) !important;
-        }
-
-        .monaco-editor .suggest-widget .monaco-list .monaco-list-row.focused {
-            background-color: rgba(88, 101, 242, 0.15) !important;
-            box-shadow: 0 0 8px rgba(88, 101, 242, 0.2) inset !important;
-        }
-
-        /* Ensure text remains visible on transparent background */
-        .monaco-editor .suggest-widget .monaco-list .monaco-list-row .monaco-highlighted-label,
-        .monaco-editor .suggest-widget .monaco-list .monaco-list-row .type-label,
-        .monaco-editor .suggest-widget .monaco-list .monaco-list-row .details-label {
-            color: #fff !important;
-            text-shadow: 0 0 2px rgba(0, 0, 0, 0.4) !important;
-        }
-
-        /* Parameter hints styling */
-        .monaco-editor .parameter-hints-widget {
-            background-color: #0a0b11 !important;
-            border: 1px solid rgba(88, 101, 242, 0.2) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
-            border-radius: 6px !important;
-        }
-
-        .monaco-editor .parameter-hints-widget .monaco-scrollable-element {
-            background-color: #0a0b11 !important;
-        }
-
-        .monaco-editor .parameter-hints-widget .phwrapper {
-            color: #8892b0 !important;
-            padding: 8px !important;
-        }
-
-        .monaco-editor .parameter-hints-widget .parameter {
-            color: #fff !important;
-        }
-
-        .monaco-editor .parameter-hints-widget .parameter.active {
-            color: #5865f2 !important;
-        }
-    </style>
 </head>
 
 <body>
@@ -695,6 +191,41 @@
             require(['vs/editor/editor.main'], function () {
                 // Register Lua language
                 monaco.languages.register({ id: 'lua' });
+
+                // Configure Lua language
+                monaco.languages.setLanguageConfiguration('lua', {
+                    comments: {
+                        lineComment: '--',
+                        blockComment: ['--[[', ']]']
+                    },
+                    brackets: [
+                        ['{', '}'],
+                        ['[', ']'],
+                        ['(', ')'],
+                        ['do', 'end'],
+                        ['then', 'end']
+                    ],
+                    autoClosingPairs: [
+                        { open: '{', close: '}' },
+                        { open: '[', close: ']' },
+                        { open: '(', close: ')' },
+                        { open: '"', close: '"', notIn: ['string'] },
+                        { open: "'", close: "'", notIn: ['string'] }
+                    ],
+                    surroundingPairs: [
+                        { open: '{', close: '}' },
+                        { open: '[', close: ']' },
+                        { open: '(', close: ')' },
+                        { open: '"', close: '"' },
+                        { open: "'", close: "'" }
+                    ],
+                    folding: {
+                        markers: {
+                            start: new RegExp("^\\s*--\\s*(?:(?:#?region\\b)|(?:<editor-fold\\b))"),
+                            end: new RegExp("^\\s*--\\s*(?:(?:#?endregion\\b)|(?:</editor-fold>))")
+                        }
+                    }
+                });
 
                 // Create editor with advanced settings
                 editor = monaco.editor.create(document.getElementById('editor'), {
@@ -982,6 +513,93 @@
                         }
                     },
                     wordPattern: /(#?-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g
+                });
+
+                // Define Lua language tokens
+                monaco.languages.setMonarchTokensProvider('lua', {
+                    defaultToken: '',
+                    tokenPostfix: '.lua',
+                    keywords: [
+                        'and', 'break', 'do', 'else', 'elseif',
+                        'end', 'false', 'for', 'function', 'goto', 'if',
+                        'in', 'local', 'nil', 'not', 'or',
+                        'repeat', 'return', 'then', 'true', 'until',
+                        'while'
+                    ],
+                    brackets: [
+                        { token: 'delimiter.bracket', open: '{', close: '}' },
+                        { token: 'delimiter.array', open: '[', close: ']' },
+                        { token: 'delimiter.parenthesis', open: '(', close: ')' }
+                    ],
+                    globals: [
+                        'assert', 'collectgarbage', 'error', 'getfenv', 'getmetatable',
+                        'ipairs', 'loadfile', 'loadstring', 'newproxy', 'next', 'pairs',
+                        'pcall', 'print', 'rawequal', 'rawget', 'rawset', 'select', 'setfenv',
+                        'setmetatable', 'tonumber', 'tostring', 'type', 'unpack', 'xpcall', '_G',
+                        'shared', 'delay', 'require', 'spawn', 'tick', 'typeof', 'wait', 'warn',
+                        'game', 'Enum', 'script', 'workspace', 'printidentity'
+                    ],
+                    operators: [
+                        '+', '-', '*', '/', '%', '^', '#', '==', '~=', '<=', '>=', '<', '>', '=',
+                        ';', ':', ',', '.', '..', '...'
+                    ],
+                    symbols: /[=><!~?:&|+\-*\/\^%]+/,
+                    escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
+                    tokenizer: {
+                        root: [
+                            [/[a-zA-Z_]\w*/, {
+                                cases: {
+                                    '@keywords': { token: 'keyword.$0' },
+                                    '@globals': { token: 'global' },
+                                    '@default': 'identifier'
+                                }
+                            }],
+                            { include: '@whitespace' },
+                            [/(,)(\s*)([a-zA-Z_]\w*)(\s*)(:)(?!:)/, ['delimiter', '', 'key', '', 'delimiter']],
+                            [/({)(\s*)([a-zA-Z_]\w*)(\s*)(:)(?!:)/, ['@brackets', '', 'key', '', 'delimiter']],
+                            [/[{}()\[\]]/, '@brackets'],
+                            [/@symbols/, {
+                                cases: {
+                                    '@operators': 'delimiter',
+                                    '@default': ''
+                                }
+                            }],
+                            [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+                            [/0[xX][0-9a-fA-F_]*[0-9a-fA-F]/, 'number.hex'],
+                            [/\d+?/, 'number'],
+                            [/[;,.]/, 'delimiter'],
+                            [/"([^"\\]|\\.)*$/, 'string.invalid'],
+                            [/'([^'\\]|\\.)*$/, 'string.invalid'],
+                            [/"/, 'string', '@string."'],
+                            [/'/, 'string', '@string.\'']
+                        ],
+                        whitespace: [
+                            [/[ \t\r\n]+/, ''],
+                            [/--\[([=]*)\[/, 'comment', '@comment.$1'],
+                            [/--.*$/, 'comment']
+                        ],
+                        comment: [
+                            [/[^\]]+/, 'comment'],
+                            [/\]([=]*)\]/, {
+                                cases: {
+                                    '$1==$S2': { token: 'comment', next: '@pop' },
+                                    '@default': 'comment'
+                                }
+                            }],
+                            [/./, 'comment']
+                        ],
+                        string: [
+                            [/[^\\"']+/, 'string'],
+                            [/@escapes/, 'string.escape'],
+                            [/\\./, 'string.escape.invalid'],
+                            [/["']/, {
+                                cases: {
+                                    '$#==$S2': { token: 'string', next: '@pop' },
+                                    '@default': 'string'
+                                }
+                            }]
+                        ]
+                    }
                 });
 
                 // Create a custom worker for advanced error checking
@@ -1311,9 +929,9 @@
 
                         const suggestions = [
                             {
-                                label: 'print',
+                                label: 'printidentity',
                                 kind: monaco.languages.CompletionItemKind.Function,
-                                insertText: 'print(${1:value})',
+                                insertText: 'printidentity()',
                                 insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
                                 documentation: 'Prints a value to console'
                             },
@@ -1587,6 +1205,16 @@
                 document.head.appendChild(style);
             });
         };
+    </script>
+    <script>
+        function getEditorContent() {
+            if (typeof editor !== 'undefined') {
+                return editor.getValue();
+            } else {
+                console.error('Editor is not initialized');
+                return null;
+            }
+        }
     </script>
 </body>
 

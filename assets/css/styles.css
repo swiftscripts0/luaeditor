@@ -1,3 +1,5 @@
+
+
 body {
     margin: 0;
     padding: 0;
@@ -289,10 +291,13 @@ body {
     cursor: pointer;
     color: #ff4757;
     font-size: 30px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 /* Editor animations and effects */
+.monaco-editor {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
+}
+
 .monaco-editor .cursor {
     transition: all 0.06s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 0 8px rgba(88, 101, 242, 0.4);
@@ -501,4 +506,12 @@ body {
 
 .monaco-editor .parameter-hints-widget .parameter.active {
     color: #5865f2 !important;
+}
+
+.monaco-editor,.monaco-editor-background,.monaco-editor,.margin {
+    background-color: #0a0b11 !important;
+}
+
+.decorationsOverviewRuler {
+    background-color: transparent !important;
 }

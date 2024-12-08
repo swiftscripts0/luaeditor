@@ -30,7 +30,8 @@
     <script>
         var require = {
             paths: {
-                'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs'
+                'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs',
+                'luaparse': 'https://unpkg.com/luaparse@0.3.1/luaparse'
             },
             'vs/nls': {
                 availableLanguages: {
@@ -40,6 +41,7 @@
         };
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <script src="https://unpkg.com/luaparse@0.3.1/luaparse.js"></script>
     <script>
         require.config({
             'vs/nls': {
@@ -51,7 +53,6 @@
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.nls.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.js"></script>
-    <script src="https://unpkg.com/luaparse@0.3.1/luaparse.js"></script>
 
     <!-- Add Prism.js CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />

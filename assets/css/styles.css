@@ -222,6 +222,26 @@ body {
     transform: translateY(-2px);
 }
 
+.tab-rename-input {
+    width: 100%;
+    background: transparent;
+    border: 1px solid #4a4a4a;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    padding: 2px 4px;
+    outline: none;
+}
+
+.tab.tab-renamed {
+    animation: tab-rename-pulse 0.3s ease;
+}
+
+@keyframes tab-rename-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
 /* Hover message styling */
 .monaco-editor .monaco-hover {
     background-color: #1a1b26 !important;
@@ -276,6 +296,7 @@ body {
         /* Adjust gap for smaller screens */
     }
 }
+
 
 /* Add touch device optimizations */
 @media (hover: none) and (pointer: coarse) {
@@ -545,4 +566,17 @@ body {
 
 .decorationsOverviewRuler {
     background-color: transparent !important;
+}
+
+/* Error Line Highlighting */
+.error-line {
+    background-color: rgba(255, 0, 0, 0.1) !important;
+    border-left: 3px solid red !important;
+}
+
+.error-glyph {
+    background-color: red;
+    width: 10px;
+    margin-left: 5px;
+    border-radius: 50%;
 }

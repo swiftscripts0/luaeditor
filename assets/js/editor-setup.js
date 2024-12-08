@@ -1,4 +1,4 @@
-require(['vs/editor/editor.main'], function () {
+require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
 
     const editors = new Map();
     let tabCount = 1;
@@ -101,6 +101,11 @@ require(['vs/editor/editor.main'], function () {
                         label: 'local',
                         kind: monaco.languages.CompletionItemKind.Keyword,
                         insertText: 'local '
+                    },
+                    {
+                        label: 'function',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'function '
                     },
                     {
                         label: 'if',
@@ -394,15 +399,95 @@ require(['vs/editor/editor.main'], function () {
         }
     });
 
-    // Function to create a new editor instance
+    // Enhanced error detection and highlighting
+    function detectAndHighlightErrors(editor) {
+        // Clear previous error decorations
+        const model = editor.getModel();
+        const currentDecorations = model.getAllDecorations();
+        const errorDecorationIds = currentDecorations
+            .filter(dec => dec.options.className === 'error-line')
+            .map(dec => dec.id);
+        model.deltaDecorations(errorDecorationIds, []);
+
+        // Get the full text of the editor
+        const code = model.getValue();
+
+        try {
+            // Use luaparse to detect syntax errors
+            const parseResult = luaparse.parse(code, {
+                comments: true,
+                scope: true,
+                locations: true,
+                ranges: true
+            });
+
+            // If parsing succeeds with no errors, return
+            return [];
+        } catch (error) {
+            // If there's a parsing error, highlight the problematic line
+            if (error.line) {
+                const errorDecoration = {
+                    range: new monaco.Range(error.line, 1, error.line, model.getLineMaxColumn(error.line)),
+                    options: {
+                        isWholeLine: true,
+                        className: 'error-line',
+                        glyphMarginClassName: 'error-glyph',
+                        hoverMessage: { value: `Syntax Error: ${error.message}` }
+                    }
+                };
+
+                // Apply the error decoration
+                model.deltaDecorations([], [errorDecoration]);
+
+                // Optional: Show error message in console
+                console.error(`Syntax Error on line ${error.line}: ${error.message}`);
+
+                return [error.line];
+            }
+        }
+
+        return [];
+    }
+
+    // Add error detection to editor change events with line-specific tracking
+    function setupErrorDetection(editor) {
+        // Track last edited lines and their typing state
+        const lineTypingState = new Map();
+        
+        // Debounce timers for each line
+        const lineDebounceTimers = new Map();
+
+        editor.onDidChangeModelContent((event) => {
+            event.changes.forEach(change => {
+                const startLineNumber = change.range.startLineNumber;
+                
+                // Clear any existing debounce timer for this line
+                if (lineDebounceTimers.has(startLineNumber)) {
+                    clearTimeout(lineDebounceTimers.get(startLineNumber));
+                }
+
+                // Set a new debounce timer
+                const timer = setTimeout(() => {
+                    // Remove the timer from the map
+                    lineDebounceTimers.delete(startLineNumber);
+                    
+                    // Detect and highlight errors
+                    detectAndHighlightErrors(editor);
+                }, 1000); // 1 second after last typing
+
+                // Store the timer
+                lineDebounceTimers.set(startLineNumber, timer);
+            });
+        });
+    }
+
+    // Modify existing editor creation to ensure error detection
     function createEditorInstance(container) {
-        return monaco.editor.create(container, {
+        const editor = monaco.editor.create(container, {
             language: 'luau',
             theme: 'luauVibrantTheme',
             automaticLayout: true,
-            minimap: {
-                enabled: true
-            },
+            minimap: { enabled: true },
             fontSize: 14,
             lineNumbers: 'on',
             roundedSelection: false,
@@ -413,7 +498,17 @@ require(['vs/editor/editor.main'], function () {
             insertSpaces: true,
             wordWrap: 'on'
         });
+
+        // Setup error detection for this editor
+        setupErrorDetection(editor);
+
+        return editor;
     }
+
+    // Apply error detection to existing editors
+    editors.forEach(editor => {
+        setupErrorDetection(editor);
+    });
 
     // Function to save tab content
     function saveTabContent(tabId) {
@@ -624,6 +719,144 @@ print("Hello, World!")`);
         }
     }
 
+    // Function to rename a tab
+    function renameTab(tab) {
+        // Prevent renaming if already in rename mode
+        if (tab.querySelector('.tab-rename-input')) return;
+
+        const currentName = tab.textContent.replace('x', '').trim();
+        
+        // Create input for renaming
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentName;
+        input.classList.add('tab-rename-input');
+
+        // Store original children to restore later
+        const originalChildren = Array.from(tab.childNodes);
+
+        // Replace tab content with input
+        tab.innerHTML = '';
+        tab.appendChild(input);
+        input.focus();
+        input.select();
+
+        // Flag to prevent multiple rename attempts
+        let isRenamed = false;
+
+        // Handle rename completion
+        function completeRename(newName) {
+            // Prevent multiple executions
+            if (isRenamed) return;
+            isRenamed = true;
+
+            // Use the provided name or fallback to current name
+            const finalName = (newName || input.value).trim() || currentName;
+            
+            // Restore tab with new name
+            tab.innerHTML = `${finalName} <span class="close-tab">x</span>`;
+            const newCloseButton = tab.querySelector('.close-tab');
+            newCloseButton.addEventListener('click', () => closeTab(tab));
+        }
+
+        // Handle cancellation
+        function cancelRename() {
+            // Prevent multiple executions
+            if (isRenamed) return;
+            isRenamed = true;
+
+            // Restore original tab
+            tab.innerHTML = '';
+            originalChildren.forEach(child => tab.appendChild(child));
+        }
+
+        // Event listeners
+        input.addEventListener('blur', () => {
+            if (!isRenamed) {
+                completeRename();
+            }
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                completeRename();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelRename();
+            }
+        });
+    }
+
+    // Add double-click event listener for tab renaming
+    document.querySelector('.tab-container').addEventListener('dblclick', function(e) {
+        const tab = e.target.closest('.tab');
+        if (tab && !tab.classList.contains('new-tab-btn')) {
+            renameTab(tab);
+        }
+    });
+
+    // Function to highlight error lines
+    function highlightErrorLine(editor, lineNumber) {
+        // Remove any existing error decorations
+        const model = editor.getModel();
+        const errorDecorations = model.deltaDecorations(
+            [], 
+            [{
+                range: new monaco.Range(lineNumber, 1, lineNumber, model.getLineMaxColumn(lineNumber)),
+                options: {
+                    isWholeLine: true,
+                    className: 'error-line',
+                    glyphMarginClassName: 'error-glyph'
+                }
+            }]
+        );
+        return errorDecorations;
+    }
+
+    // CSS for error line highlighting (add to styles.css)
+    const errorLineStyle = document.createElement('style');
+    errorLineStyle.textContent = `
+        .error-line {
+            background-color: rgba(255, 0, 0, 0.1) !important;
+            border-left: 3px solid red !important;
+        }
+        .error-glyph {
+            background-color: red;
+            width: 10px;
+            margin-left: 5px;
+        }
+    `;
+    document.head.appendChild(errorLineStyle);
+
+    // Expose error highlighting function globally
+    window.highlightErrorLine = highlightErrorLine;
+
+    // Add a global method to trigger error highlighting on the current line
+    window.triggerErrorHighlight = function() {
+        const activeTab = document.querySelector('.tab.active');
+        if (!activeTab) return;
+
+        const activeEditor = editors.get(activeTab.dataset.tabId);
+        if (!activeEditor) return;
+
+        // Get the current line number
+        const position = activeEditor.getPosition();
+        if (!position) return;
+
+        // Highlight the current line
+        highlightErrorLine(activeEditor, position.lineNumber);
+    };
+
+    // Add a keyboard shortcut to trigger error highlighting
+    document.addEventListener('keydown', function(e) {
+        // Ctrl + E to highlight current line as an error
+        if (e.ctrlKey && e.key === 'e') {
+            e.preventDefault();
+            window.triggerErrorHighlight();
+        }
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const tabContainer = document.querySelector('.tab-container');
 
@@ -632,7 +865,7 @@ print("Hello, World!")`);
             const tab = e.target.closest('.tab');
             
             // Ensure we've clicked on a tab, but not the close button
-            if (tab && !e.target.closest('.close-tab')) {
+            if (tab && !e.target.classList.contains('close-tab')) {
                 // Always try to set this tab as active
                 setActiveTab(tab);
             }

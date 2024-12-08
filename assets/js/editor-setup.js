@@ -503,7 +503,7 @@ print("Hello, World!")`;
         const tab = document.createElement('button');
         tab.className = 'tab';
         tab.dataset.tabId = tabId;
-        tab.innerHTML = `Untitled-${nextTabNumber}<span class="close-tab">x</span>`;
+        tab.innerHTML = `Untitled-${nextTabNumber}.lua<span class="close-tab">x</span>`;
         
         // Create editor container
         const editorContainer = document.createElement('div');

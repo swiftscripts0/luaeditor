@@ -2,12 +2,10 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
 
     const editors = new Map();
     let tabCount = 1;
-    let tabContents = new Map(); // Store content for each tab
+    let tabContents = new Map();
 
-    // Use Monaco's built-in Lua configuration for Luau
     monaco.languages.register({ id: 'luau' });
 
-    // Define a tokenizer configuration for the 'luau' language
     monaco.languages.setMonarchTokensProvider('luau', {
         tokenizer: {
             root: [
@@ -28,7 +26,6 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
         }
     });
 
-    // Define a custom theme with a vibrant color scheme
     monaco.editor.defineTheme('luauVibrantTheme', {
         base: 'vs-dark',
         inherit: true,
@@ -49,10 +46,10 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
         }
     });
 
-    // Apply the vibrant theme
+
     monaco.editor.setTheme('luauVibrantTheme');
 
-    // Define Luau language configuration
+
     monaco.languages.setLanguageConfiguration('luau', {
         comments: {
             lineComment: '--',
@@ -80,14 +77,14 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
         ]
     });
 
-    // Expand autocompletion with basic Luau functions
+
     monaco.languages.registerCompletionItemProvider('luau', {
         provideCompletionItems: function (model, position) {
             var textUntilPosition = model.getValueInRange({ startLineNumber: 1, startColumn: 1, endLineNumber: position.lineNumber, endColumn: position.column });
             var match = textUntilPosition.match(/game:GetService\(\"(.*?)\"\)/);
             var suggestions = [];
             if (match) {
-                // Provide suggestions for GetService
+
                 var services = ['Workspace', 'Players', 'Lighting', 'ReplicatedStorage', 'ServerScriptService'];
                 suggestions = services.map(service => ({
                     label: service,
@@ -95,7 +92,7 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
                     insertText: service
                 }));
             } else {
-                // Default suggestions
+
                 suggestions = [
                     {
                         label: 'local',
@@ -118,6 +115,16 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
                         insertText: 'else '
                     },
                     {
+                        label: 'elseif',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'elseif '
+                    },
+                    {
+                        label: 'export',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'export '
+                    },
+                    {
                         label: 'for',
                         kind: monaco.languages.CompletionItemKind.Keyword,
                         insertText: 'for '
@@ -128,9 +135,153 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
                         insertText: 'while '
                     },
                     {
+                        label: 'break',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'break '
+                    },
+                    {
+                        label: 'continue',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'continue '
+                    },
+                    {
+                        label: 'repeat',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'repeat '
+                    },
+                    {
+                        label: 'until',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'until '
+                    },
+                    {
+                        label: 'next',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'next '
+                    },
+                    {
+                        label: 'not',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'not '
+                    },
+                    {
+                        label: 'then',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'then '
+                    },
+                    {
+                        label: 'end',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'end '
+                    },
+                    {
+                        label: 'or',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'or '
+                    },
+                    {
+                        label: 'and',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'and '
+                    },
+                    {
+                        label: 'do',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'do '
+                    },
+                    {
+                        label: 'self',
+                        kind: monaco.languages.CompletionItemKind.Keyword,
+                        insertText: 'self '
+                    },
+                    {
                         label: 'print',
                         kind: monaco.languages.CompletionItemKind.Function,
                         insertText: 'print($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'assert',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'assert($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'error',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'error($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'gcinfo',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'gcinfo($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'getmetatable',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'getmetatable($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'setmetatable',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'setmetatable($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'newproxy',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'newproxy($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'rawequal',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'rawequal($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'rawget',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'rawget($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'rawset',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'rawset($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'rawlen',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'rawlen($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'require',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'require($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'select',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'select($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'type',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'type($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'unpack',
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'unpack($1)',
                         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
                     },
                     {
@@ -173,6 +324,42 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
                         label: 'xpcall',
                         kind: monaco.languages.CompletionItemKind.Function,
                         insertText: 'xpcall($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: "elapsedTime",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'elapsedTime($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: "settings",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'settings($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: "tick",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'tick($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: "typeof",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'typeof($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: "warn",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'warn($1)',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: "time",
+                        kind: monaco.languages.CompletionItemKind.Function,
+                        insertText: 'time($1)',
                         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
                     },
                     {
@@ -317,9 +504,29 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
                         insertText: 'Lighting'
                     },
                     {
+                        label: 'MaterialService',
+                        kind: monaco.languages.CompletionItemKind.Module,
+                        insertText: 'MaterialService'
+                    },
+                    {
+                        label: 'ReplicatedFirst',
+                        kind: monaco.languages.CompletionItemKind.Module,
+                        insertText: 'ReplicatedFirst'
+                    },
+                    {
                         label: 'ReplicatedStorage',
                         kind: monaco.languages.CompletionItemKind.Module,
                         insertText: 'ReplicatedStorage'
+                    },
+                    {
+                        label: 'ServerScriptService',
+                        kind: monaco.languages.CompletionItemKind.Module,
+                        insertText: 'ServerScriptService'
+                    },
+                    {
+                        label: 'ServerStorage',
+                        kind: monaco.languages.CompletionItemKind.Module,
+                        insertText: 'ServerStorage'
                     },
                     {
                         label: 'FindFirstChild',
@@ -356,7 +563,49 @@ require(['vs/editor/editor.main', 'luaparse'], function (monaco, luaparse) {
                         kind: monaco.languages.CompletionItemKind.Function,
                         insertText: 'loadstring()',
                         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-                    }
+                    },
+                    {
+                        label: 'plugin',
+                        kind: monaco.languages.CompletionItemKind.Property,
+                        insertText: 'plugin',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'game',
+                        kind: monaco.languages.CompletionItemKind.Property,
+                        insertText: 'game',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'shared',
+                        kind: monaco.languages.CompletionItemKind.Property,
+                        insertText: 'shared',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'script',
+                        kind: monaco.languages.CompletionItemKind.Property,
+                        insertText: 'script',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: 'workspace',
+                        kind: monaco.languages.CompletionItemKind.Property,
+                        insertText: 'workspace',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: '_G',
+                        kind: monaco.languages.CompletionItemKind.Property,
+                        insertText: '_G',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
+                    {
+                        label: '_VERSION',
+                        kind: monaco.languages.CompletionItemKind.Property,
+                        insertText: '_VERSION',
+                        insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
+                    },
                 ];
             }
 
